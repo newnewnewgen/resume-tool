@@ -1,0 +1,32 @@
+[project]
+name = "resume-tool"
+version = "0.1.0"
+description = "Personal resume tool — match experience to job descriptions, surface gaps."
+requires-python = ">=3.11"
+dependencies = [
+    "typer>=0.15.0",
+    "pyyaml>=6.0",
+    "pypdf>=5.0.0",
+    "python-docx>=1.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+resume = "resume_tool.cli:app"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+resume_tool = ["db/*.sql"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Environment
+.env
+*.env
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Local data — the resume bank is personal; never commit it
+*.db
+*.sqlite
+*.sqlite3
+data/
+drafts/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

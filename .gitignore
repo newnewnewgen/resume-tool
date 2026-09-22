@@ -27,11 +27,14 @@ htmlcov/
 data/
 drafts/
 
-# Filled-in worksheets contain real career history. Blank templates in
-# worksheets/ are fine to commit; anything you have written into is not.
+# Filled-in worksheets and generated resumes contain real career history and
+# contact details. Blank templates in worksheets/ are fine to commit; anything
+# written into is not. Match ANY extension — an earlier version of this rule
+# only covered .yaml and a .filled.txt resume draft slipped past it.
 worksheets/private/
-worksheets/*.filled.yaml
-worksheets/*.filled.yml
+worksheets/*.filled.*
+worksheets/*.resume.*
+*.filled.*
 
 # OS / editors
 .DS_Store

@@ -7,14 +7,14 @@ See [SPEC.md](SPEC.md) for the full design.
 
 ## Status
 
-**Build step 1 of 8 complete** — schema, storage, and deterministic ingest.
+**Build steps 1 and 3 complete** — schema, storage, deterministic ingest, and ATS-safe rendering.
 No LLM dependency yet; nothing here needs an API key.
 
 | Step | | |
 |---|---|---|
 | 1 | Schema + SQLite + ingest resume → Experiences | ✅ done |
-| 2 | Eval harness + golden set | next |
-| 3 | ATS round-trip test + docx writer | |
+| 2 | Eval harness + golden set | |
+| 3 | ATS round-trip test + docx writer | ✅ done |
 | 4 | JD → tiered requirements | |
 | 5 | Retrieval + gap detection | |
 | 6 | Telling generation + reuse + truth check | |
@@ -65,6 +65,16 @@ resume show EXP-001
 resume stats
 ```
 
+### Checking a document for ATS problems
+
+```bash
+resume lint my-resume.docx
+```
+
+Flags tables, text boxes, images, multi-column layout, contact details stranded in
+a page header, missing email, nonstandard section headings, and Word list bullets
+that vanish from extracted text. Exits non-zero on anything blocking.
+
 ### Manual entry
 
 ```bash
@@ -88,4 +98,4 @@ The bank is personal data and is gitignored.
 .venv/bin/python -m pytest
 ```
 
-82 tests, no network, no API key.
+99 tests, no network, no API key.

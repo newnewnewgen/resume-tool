@@ -34,11 +34,25 @@ def _from_pdf(path: Path) -> str:
     return "\n".join(page.extract_text() or "" for page in reader.pages)
 
 
+BULLET = "•"
+
+
 def _from_docx(path: Path) -> str:
     import docx
 
     document = docx.Document(str(path))
-    lines = [p.text for p in document.paragraphs]
+
+    lines = []
+    for p in document.paragraphs:
+        text = p.text
+        # Word list formatting carries the bullet as numbering metadata, not as a
+        # character — so a list paragraph extracts as bare text and every
+        # bullet-detecting parser downstream sees nothing. Normalize it back to a
+        # literal marker. Found by running a real .docx resume through ingest and
+        # recovering 0 of 17 bullets.
+        if text.strip() and _is_list_paragraph(p) and not text.lstrip().startswith(BULLET):
+            text = f"{BULLET} {text.lstrip()}"
+        lines.append(text)
 
     # Tables are bad for ATS parsing, but resumes still use them — read them anyway
     # so ingest does not silently drop content.
@@ -49,3 +63,17 @@ def _from_docx(path: Path) -> str:
                 lines.append("  ".join(cells))
 
     return "\n".join(lines)
+
+
+def _is_list_paragraph(paragraph) -> bool:
+    """True if Word is rendering this paragraph as a list item."""
+    try:
+        if "list" in (paragraph.style.name or "").lower():
+            return True
+    except Exception:
+        pass
+    # Direct numbering properties, set when a list is applied without a named style.
+    try:
+        return paragraph._p.find(".//{*}numPr") is not None
+    except Exception:
+        return False

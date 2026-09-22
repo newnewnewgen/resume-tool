@@ -41,6 +41,11 @@ _OTHER_SECTIONS = {
     "education", "skills", "technical skills", "projects", "certifications",
     "awards", "summary", "objective", "publications", "interests", "references",
     "volunteer", "languages", "activities",
+    # Leadership and its neighbours are dated like jobs, so without these a club
+    # role parses as employment.
+    "leadership", "leadership experience", "involvement", "extracurriculars",
+    "extracurricular", "community", "community involvement", "affiliations",
+    "honors", "honours", "achievements", "additional experience",
 }
 _SECTION_NAMES = _EXPERIENCE_SECTIONS | _OTHER_SECTIONS
 
@@ -151,8 +156,16 @@ def parse_resume(text: str) -> ParseResult:
         )
         return result
 
+    # A job block ends at the next job header OR the next section header, whichever
+    # comes first. Without the section bound, the final job absorbs everything that
+    # follows it — leadership bullets, skills, education.
+    section_starts = [i for i, line in enumerate(lines) if _section_name(line) is not None]
+
     for n, start in enumerate(header_indices):
         end = header_indices[n + 1] if n + 1 < len(header_indices) else len(lines)
+        next_section = next((i for i in section_starts if i > start), None)
+        if next_section is not None:
+            end = min(end, next_section)
         block = lines[start:end]
         prev_line = lines[start - 1] if start > 0 else None
         job = _parse_job_block(block, prev_line)
@@ -189,6 +202,18 @@ def _parse_job_block(block: list[str], prev_line: str | None) -> CandidateJob | 
         notes.append("Employer/title taken from an adjacent line — verify.")
 
     employer, title, location = _split_header(remainder)
+
+    # Stacked layout: "Title<TAB>Dates" on one line, "Employer<TAB>Location" on the
+    # next. The header yields a title but no employer, so consume the following
+    # line. Common in Word resumes and the reason ingest returned UNKNOWN for every
+    # employer on a real one.
+    if title and not employer and body_start < len(block):
+        nxt = block[body_start]
+        if not _is_bullet(nxt) and find_date_range(nxt) is None and _section_name(nxt) is None:
+            employer, next_location = _split_employer_line(nxt)
+            location = location or next_location
+            body_start += 1
+
     if not employer or not title:
         notes.append("Could not separate employer from title — verify.")
 
@@ -238,6 +263,28 @@ def _split_header(text: str) -> tuple[str, str, str | None]:
 
     # No signal either way — assume "Title | Employer", the most common layout.
     return parts[1], parts[0], location
+
+
+def _split_employer_line(text: str) -> tuple[str, str | None]:
+    """Split an 'Employer<TAB>Location' line.
+
+    Distinct from _split_header, which resolves a combined title/employer/location
+    header. Here the employer is known to come first, so a trailing location is
+    always safe to strip — reusing _split_header returned the city as the employer.
+    """
+    # Narrower than _SPLIT_SEPARATORS on purpose: a comma on an employer line
+    # almost always belongs INSIDE a field ("Vancouver, BC" / "Acme, Inc") rather
+    # than between two. Splitting on it shattered "Vancouver, BC" into two parts,
+    # so the location was never recognized and got glued onto the employer name.
+    parts = [p.strip(" |·—\t") for p in re.split(r"\t|\s*[|·]\s*|\s{3,}", text)]
+    parts = [p for p in parts if p]
+    if not parts:
+        return "", None
+
+    location = None
+    if len(parts) > 1 and _looks_like_location(parts[-1]):
+        location = parts.pop()
+    return " ".join(parts), location
 
 
 def _extract_experiences(lines: list[str]) -> list[CandidateExperience]:

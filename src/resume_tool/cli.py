@@ -287,6 +287,25 @@ def show(
         typer.echo(f"    {telling.display_id} [{telling.angle}] {telling.text}")
 
 
+@app.command("lint")
+def lint_cmd(
+    document: Annotated[Path, typer.Argument(help="A .docx resume to check")],
+) -> None:
+    """Check a .docx for structural problems that break ATS parsing."""
+    from .render import format_issues, lint_docx
+
+    if not document.exists():
+        _fail(f"not found: {document}")
+        return
+
+    issues = lint_docx(document)
+    typer.echo(format_issues(issues))
+    errors = [i for i in issues if i.level == "error"]
+    if errors:
+        raise typer.Exit(code=1)
+    typer.secho("No blocking issues.", fg=typer.colors.GREEN)
+
+
 @app.command()
 def stats(db: DbOption = None) -> None:
     """Show what is in the bank."""

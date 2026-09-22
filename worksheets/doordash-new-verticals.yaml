@@ -28,6 +28,16 @@
 #       low-supply zones during dinner peak. Hit 71% in six weeks.
 #       Tools: SQL over Snowflake, dashboard in Looker.
 #
+# Use block style for facts, never flow style. In flow style the comma is a
+# separator, so `{kind: metric, value: 1,470 hours}` silently parses as
+# `value: 1` plus a garbage key. Write facts as:
+#
+#     facts:
+#       - kind: metric
+#         value: "1,470+ hours saved"
+#
+# Quote any value containing a comma.
+#
 # Spaces only, never tabs. Keep the indentation consistent and you cannot
 # break the file. Check it before sending back:
 #

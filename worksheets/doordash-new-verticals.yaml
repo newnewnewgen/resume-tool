@@ -4,12 +4,34 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # HOW TO USE THIS
 #
+# Copy this file to a gitignored name first — this repo is public:
+#     cp doordash-new-verticals.yaml doordash.filled.yaml
+#
 # Under each `your_experience:`, write ONE concrete thing you actually did.
 #   - Facts, not framing. What happened, the numbers, the tools, who was involved.
 #   - Don't write toward the requirement. Write what happened; framing comes later.
 #   - LEAVE IT BLANK if you have no real story. Blanks are the most useful output
 #     here — they are the gaps, and a blank critical gap is worth more of your
 #     attention than a filled nice-to-have.
+#
+# ── YAML: use a `|` block, not quotes ───────────────────────────────────────
+#
+# Replace   your_experience: ""
+# with      your_experience: |
+#
+# and indent your text under it. Everything inside a `|` block is literal, so
+# colons, apostrophes, %, "quotes" and line breaks are all safe:
+#
+#     your_experience: |
+#       Owned acceptance rate for the Ontario region for 18 months.
+#       Baseline: 62%. Ran a pay-incentive test — raised base $0.50 in
+#       low-supply zones during dinner peak. Hit 71% in six weeks.
+#       Tools: SQL over Snowflake, dashboard in Looker.
+#
+# Spaces only, never tabs. Keep the indentation consistent and you cannot
+# break the file. Check it before sending back:
+#
+#     python3 -c "import yaml,sys; yaml.safe_load(open(sys.argv[1]))" FILE.yaml
 #
 # Tiers:  critical = screened for, gap likely costs you the role
 #         important = strongly implied, gaps are survivable but visible

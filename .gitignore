@@ -27,6 +27,12 @@ htmlcov/
 data/
 drafts/
 
+# Filled-in worksheets contain real career history. Blank templates in
+# worksheets/ are fine to commit; anything you have written into is not.
+worksheets/private/
+worksheets/*.filled.yaml
+worksheets/*.filled.yml
+
 # OS / editors
 .DS_Store
 .idea/

@@ -1,0 +1,232 @@
+# DoorDash — Senior Associate, New Verticals | Canada Strategy & Operations
+# Toronto, ON / Vancouver, BC · $97,000–$121,000 CAD (BC range) · hybrid
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# HOW TO USE THIS
+#
+# Under each `your_experience:`, write ONE concrete thing you actually did.
+#   - Facts, not framing. What happened, the numbers, the tools, who was involved.
+#   - Don't write toward the requirement. Write what happened; framing comes later.
+#   - LEAVE IT BLANK if you have no real story. Blanks are the most useful output
+#     here — they are the gaps, and a blank critical gap is worth more of your
+#     attention than a filled nice-to-have.
+#
+# Tiers:  critical = screened for, gap likely costs you the role
+#         important = strongly implied, gaps are survivable but visible
+#         nice_to_have = differentiator only
+#
+# NOTE ON THE TWO ROLES: they're hiring for two and will slot you during the
+# process. Role A = Dasher efficiency (acceptance rates, batch rates, pay).
+# Role B = consumer quality (in-app experience, subtotals, basket size).
+# Requirements tagged `role: A|B|both` — if you lean one way, bias your writing.
+# ─────────────────────────────────────────────────────────────────────────────
+
+application:
+  company: DoorDash
+  role_title: Senior Associate, New Verticals - Canada Strategy & Operations
+  location: Toronto, ON / Vancouver, BC (hybrid)
+
+# ── KNOCKOUTS — binary. Check these before writing anything else. ────────────
+knockouts:
+  - id: K1
+    requirement: Legally eligible to work in Canada
+    evidence: "Application form: 'Are you legally eligible to work in Canada?'"
+    status:          # yes / no
+
+  - id: K2
+    requirement: Completed Bachelor's Degree
+    evidence: "'You have a completed Bachelor's Degree.'"
+    status:
+
+  - id: K3
+    requirement: 2–4+ years experience in a high-performing environment
+    evidence: "'2-4+ years... tech, operations, strategy, consulting, banking, startups'"
+    status:
+
+  - id: K4
+    requirement: Able to work hybrid from Toronto or Vancouver
+    evidence: "'hybrid model, a few days a month in person'"
+    status:
+
+# ── REQUIREMENTS ────────────────────────────────────────────────────────────
+requirements:
+
+  # ─── CRITICAL ─────────────────────────────────────────────────────────────
+
+  - id: R1
+    tier: critical
+    kind: skill
+    role: both
+    requirement: Complex SQL across multiple data sources
+    evidence: "'comfortable building complex SQL queries across multiple data
+      sources'; form asks you to self-rate SQL at Intermediate+"
+    your_experience: ""
+
+  - id: R2
+    tier: critical
+    kind: skill
+    role: both
+    requirement: Economic / operational modeling in Excel or Sheets
+    evidence: "'Build models using Excel and SQL to evaluate the economic,
+      operational and strategic costs and benefits of various programs'"
+    your_experience: ""
+
+  - id: R3
+    tier: critical
+    kind: skill
+    role: both
+    requirement: Using AI tools as a builder — automating workflows, prototyping
+    evidence: "Mentioned ~6 times. 'leveraging AI to uplevel how we operate',
+      'automating repetitive workflows', 'do in hours what used to take weeks',
+      names Claude, Cursor, Gemini. Form asks you to self-rate."
+    note: "The most distinctive requirement in this JD. Most applicants will
+      under-index here. A specific story about automating a real workflow is
+      worth more than a general claim of AI familiarity."
+    your_experience: ""
+
+  - id: R4
+    tier: critical
+    kind: skill
+    role: both
+    requirement: Dashboards and data visualization
+    evidence: "'Own tracking dashboards and manage week over week metrics';
+      'experience with data visualization and dashboarding tools'"
+    your_experience: ""
+
+  - id: R5
+    tier: critical
+    kind: skill
+    role: both
+    requirement: Owning a metric end-to-end as the DRI and moving it
+    evidence: "'be the DRI for the success of metrics ranging from acceptance
+      rates, batch rates, subtotals, basket size'"
+    note: "They want a number you owned and moved — not a project you contributed
+      to. Baseline, what you changed, resulting number."
+    your_experience: ""
+
+  - id: R6
+    tier: critical
+    kind: skill
+    role: both
+    requirement: Designing, launching and reading out experiments
+    evidence: "'Design, launch, and share out operational experiments and product
+      features'; 'testing every idea'"
+    your_experience: ""
+
+  - id: R7
+    tier: critical
+    kind: skill
+    role: both
+    requirement: Influencing cross-functional partners without authority
+    evidence: "'partner with and influence cross-functional teams including
+      growth, quality, finance, product, analytics and engineering'"
+    your_experience: ""
+
+  - id: R8
+    tier: critical
+    kind: quality
+    role: both
+    requirement: First-principles problem solving
+    evidence: "Stated twice: 'From first principles, you'll develop the optimal
+      strategy'; 'You resist this is how it's always been done thinking'"
+    your_experience: ""
+
+  # ─── IMPORTANT ────────────────────────────────────────────────────────────
+
+  - id: R9
+    tier: important
+    kind: domain
+    role: both
+    requirement: Multi-sided marketplace dynamics
+    evidence: "'understand our three-sided marketplace' — Dashers, merchants,
+      consumers"
+    your_experience: ""
+
+  - id: R10
+    tier: important
+    kind: skill
+    role: both
+    requirement: Unit economics and the growth / cost / quality tradeoff
+    evidence: "'unit economics that impact our financial success all while
+      balancing growth, cost and quality. You'll need to weigh both sides of
+      that tradeoff in every lever you pull.'"
+    your_experience: ""
+
+  - id: R11
+    tier: important
+    kind: quality
+    role: both
+    requirement: Entrepreneurial — built something from zero
+    evidence: "'You're entrepreneurial. You have a bias for action and are able
+      to build things from the ground up.'"
+    your_experience: ""
+
+  - id: R12
+    tier: important
+    kind: quality
+    role: both
+    requirement: Operating in ambiguity / shaping an undefined role
+    evidence: "'This role is still taking shape, and you're excited to help
+      define it rather than inherit a fixed playbook.'"
+    your_experience: ""
+
+  - id: R13
+    tier: important
+    kind: skill
+    role: both
+    requirement: Product sense — translating problems into product direction
+    evidence: "'building product visions'; 'These roles sit at the intersection
+      of strategy, operations, and product'"
+    your_experience: ""
+
+  - id: R14
+    tier: important
+    kind: skill
+    role: both
+    requirement: Weekly operating cadence on live metrics
+    evidence: "'manage week over week metrics to drive high quality operations'"
+    your_experience: ""
+
+  # ─── NICE TO HAVE ─────────────────────────────────────────────────────────
+
+  - id: R15
+    tier: nice_to_have
+    kind: skill
+    role: both
+    requirement: Databricks or GitHub
+    evidence: "Named in the form's tool self-assessment"
+    your_experience: ""
+
+  - id: R16
+    tier: nice_to_have
+    kind: domain
+    role: A
+    requirement: Logistics, last-mile delivery, batching or routing
+    evidence: "'order batching', 'dynamic delivery windows', 'US Logistics
+      counterparts'"
+    your_experience: ""
+
+  - id: R17
+    tier: nice_to_have
+    kind: domain
+    role: B
+    requirement: Grocery, convenience, or retail
+    evidence: "'100,000+ grocery, convenience, alcohol, retail, and DashMart
+      stores'"
+    your_experience: ""
+
+  - id: R18
+    tier: nice_to_have
+    kind: skill
+    role: B
+    requirement: Pricing and promotions
+    evidence: "'pricing & promotions' listed among the efficiency levers"
+    your_experience: ""
+
+  - id: R19
+    tier: nice_to_have
+    kind: domain
+    role: both
+    requirement: Canadian market context
+    evidence: "'building our Canadian marketplace'"
+    your_experience: ""

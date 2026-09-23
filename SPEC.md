@@ -214,3 +214,11 @@ Auth. Hosting. Multi-user. Web UI. A WYSIWYG designer. LaTeX. Cover letters.
 
 v1 built most of these for a system with one user. "For now" means keep the core
 UI-agnostic — which is free — and add nothing else speculatively.
+
+
+## Writing quality
+
+See [docs/writing-guidelines.md](docs/writing-guidelines.md) — derived from the
+author rejecting the first generated resume as "mechanical and fake". Core rule:
+the coverage matrix selects what goes on the page; it must not shape how the
+sentence is written.

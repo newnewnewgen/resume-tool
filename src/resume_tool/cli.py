@@ -287,6 +287,25 @@ def show(
         typer.echo(f"    {telling.display_id} [{telling.angle}] {telling.text}")
 
 
+@app.command("load-worksheet")
+def load_worksheet_cmd(
+    worksheet: Annotated[Path, typer.Argument(help="A filled requirements worksheet (.yaml)")],
+    db: DbOption = None,
+) -> None:
+    """Load a filled worksheet's jobs, experiences and facts into the bank."""
+    from .worksheet import WorksheetError, load_worksheet
+
+    conn = _open(db)
+    try:
+        result = load_worksheet(conn, worksheet)
+    except WorksheetError as exc:
+        _fail(str(exc))
+        return
+    finally:
+        conn.close()
+    typer.secho(str(result), fg=typer.colors.GREEN)
+
+
 @app.command("lint")
 def lint_cmd(
     document: Annotated[Path, typer.Argument(help="A .docx resume to check")],

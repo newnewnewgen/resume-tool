@@ -65,6 +65,15 @@ resume show EXP-001
 resume stats
 ```
 
+### Loading a filled worksheet
+
+```bash
+resume load-worksheet worksheets/myjob.filled.yaml
+```
+
+Writes the worksheet's jobs, experiences and facts into the bank. Idempotent —
+re-run after editing and only new entries land.
+
 ### Checking a document for ATS problems
 
 ```bash
@@ -98,4 +107,4 @@ The bank is personal data and is gitignored.
 .venv/bin/python -m pytest
 ```
 
-99 tests, no network, no API key.
+109 tests, no network, no API key.

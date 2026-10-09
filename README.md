@@ -7,13 +7,13 @@ See [SPEC.md](SPEC.md) for the full design.
 
 ## Status
 
-**Build steps 1 and 3 complete** — schema, storage, deterministic ingest, and ATS-safe rendering.
-No LLM dependency yet; nothing here needs an API key.
+**Build steps 1–3 complete** — schema, storage, deterministic ingest, ATS-safe rendering,
+and the eval harness with its golden set. No LLM dependency yet; nothing here needs an API key.
 
 | Step | | |
 |---|---|---|
 | 1 | Schema + SQLite + ingest resume → Experiences | ✅ done |
-| 2 | Eval harness + golden set | |
+| 2 | Eval harness + golden set | ✅ done |
 | 3 | ATS round-trip test + docx writer | ✅ done |
 | 4 | JD → tiered requirements | |
 | 5 | Retrieval + gap detection | |
@@ -74,6 +74,17 @@ resume load-worksheet worksheets/myjob.filled.yaml
 Writes the worksheet's jobs, experiences and facts into the bank. Idempotent —
 re-run after editing and only new entries land.
 
+### Scoring retrieval against the golden set
+
+```bash
+resume eval                        # evals/golden.yaml under the keyword baseline
+resume eval --fail-under 75       # CI mode: exit 1 below 75% accuracy
+```
+
+Runs requirement → experience retrieval against cases with known answers, in a
+throwaway in-memory bank. A forced match — an expected gap answered with a
+confident candidate — always fails the run. See [evals/README.md](evals/README.md).
+
 ### Checking a document for ATS problems
 
 ```bash
@@ -107,4 +118,4 @@ The bank is personal data and is gitignored.
 .venv/bin/python -m pytest
 ```
 
-109 tests, no network, no API key.
+132 tests, no network, no API key.

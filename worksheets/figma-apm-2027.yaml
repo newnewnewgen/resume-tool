@@ -1,0 +1,236 @@
+# Figma — Early Career, Associate Product Manager (2027)
+# San Francisco, CA · hybrid · $140,000 USD base + equity
+# APPLY BY: Wednesday, October 21st, 2026 at 5:00pm PT — hard deadline.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# HOW TO USE THIS
+#
+# Copy this file to a gitignored name first — this repo is public:
+#     cp figma-apm-2027.yaml figma.filled.yaml
+#
+# Under each `your_experience:`, write ONE concrete thing you actually did.
+#   - Facts, not framing. What happened, the numbers, the tools, who was involved.
+#   - Don't write toward the requirement. Write what happened; framing comes later.
+#   - LEAVE IT BLANK if you have no real story. Blanks are the most useful output
+#     here — they are the gaps, and a blank critical gap is worth more of your
+#     attention than a filled nice-to-have.
+#
+# ── YAML: use a `|` block, not quotes ───────────────────────────────────────
+#
+# Replace   your_experience: ""
+# with      your_experience: |
+#
+# and indent your text under it. Everything inside a `|` block is literal, so
+# colons, apostrophes, %, "quotes" and line breaks are all safe. Spaces only,
+# never tabs. Check before sending back:
+#
+#     python3 -c "import yaml,sys; yaml.safe_load(open(sys.argv[1]))" FILE.yaml
+#
+# Tiers:  critical = screened for, gap likely costs you the role
+#         important = strongly implied, gaps are survivable but visible
+#         nice_to_have = differentiator only
+#
+# READ THE ROLE RIGHT: this is a rotation program for "user-driven and deeply
+# technical" APMs. The program's stated spine is connecting THREE workflows —
+# AI, design-to-code, and design systems — across Figma's products. Every
+# critical requirement below feeds one of those three or the liaison role
+# between design and engineering. A generalist PM story matters less here than
+# proof you can sit in the middle of that triangle.
+#
+# APPLICATION FORM NOTES (not requirements, but they're graded):
+#   - "Why do you want to join Figma?" — required, 3-4 sentences. Draft it from
+#     your R4/R5 answers; specifics about their products beat enthusiasm.
+#   - Website / Portfolio field — this is where R3 (visual design knack) gets
+#     judged before anyone meets you. Have something to put there.
+#   - They link four blog posts in the JD (Config 2026 recap, MCP server
+#     post, etc.). Read them; they are the interview's shared vocabulary.
+#   - Application limits: max 5 Figma applications per rolling 30 days, no
+#     reapply to the same role for 90 days after a rejection. One shot.
+# ─────────────────────────────────────────────────────────────────────────────
+
+application:
+  company: Figma
+  role_title: Early Career, Associate Product Manager (2027)
+  location: San Francisco, CA (hybrid)
+
+# ── KNOCKOUTS — binary. Check these before writing anything else. ────────────
+knockouts:
+  - id: K1
+    requirement: Authorized to work in the US
+    evidence: "Application form: 'Are you authorized to work in the country for
+      which you applied?'"
+    status:          # yes / no
+
+  - id: K2
+    requirement: Can be based in San Francisco, hybrid, with in-person onboarding
+    evidence: "'full time role based in our San Francisco hub with hybrid
+      flexibility'; 'if hired you will be required to attend in person onboarding'"
+    status:
+
+  - id: K3
+    requirement: Early-career fit for the 2027 APM cohort
+    evidence: "'Early Career' title, '(2027)' start cohort, 'rotation program' —
+      aimed at new grads / 0-2 years"
+    status:
+
+  - id: K4
+    requirement: Application submitted before Oct 21, 2026, 5:00pm PT
+    evidence: "'Applications must be submitted by Wednesday, October 21st, 2026
+      at 5:00pm PT to be considered.'"
+    status:
+
+# ── REQUIREMENTS ────────────────────────────────────────────────────────────
+requirements:
+
+  # ─── CRITICAL ─────────────────────────────────────────────────────────────
+
+  - id: R1
+    tier: critical
+    kind: skill
+    requirement: Working on deep, technically complex problems
+    evidence: "'user-driven and deeply technical Associate Product Managers';
+      'Comfortability working on deep, technically complex problems'; 'ensuring
+      they work for the underlying engineering architecture'"
+    note: "They say 'deeply technical' twice in different words. The story
+      should show you went below the UI — data model, rendering, API design,
+      performance — not that you sat near engineers."
+    your_experience: ""
+
+  - id: R2
+    tier: critical
+    kind: skill
+    requirement: Shipping a user-facing product launch
+    evidence: "'experience working on user-facing product launches'"
+    note: "Named thing, real users, your specific role in getting it out the
+      door. 'Contributed to' is the weak version of this story."
+    your_experience: ""
+
+  - id: R3
+    tier: critical
+    kind: skill
+    requirement: Hands-on with design systems, AI in design, or design-to-code tools
+    evidence: "'Experience with design systems, AI applications in design, or
+      design-to-code tools'; program intro: 'connect AI, design-to-code, and
+      design systems workflows across Figma's suite of products'"
+    note: "The JD's center of gravity — the qualification list and the program
+      description name the same three things. One concrete story in ANY of the
+      three beats shallow familiarity with all of them."
+    your_experience: ""
+
+  - id: R4
+    tier: critical
+    kind: quality
+    requirement: Visual design / design workflow fluency
+    evidence: "'A knack for visual design and/or design workflows'; form has a
+      Website / Portfolio field"
+    note: "Judged from your portfolio link before anyone reads a sentence.
+      What you built, prototyped, or designed — not what you appreciate."
+    your_experience: ""
+
+  - id: R5
+    tier: critical
+    kind: quality
+    requirement: Conviction about AI changing how design works
+    evidence: "'Excitement about shaping how design evolves in an AI-powered
+      world'; intro: 'iterating with AI'; project list: 'AI-powered workflows
+      that streamline design processes'"
+    note: "Feeds the required 'Why Figma?' answer too. An opinion backed by
+      something you built or tested lands; 'AI is transformative' does not."
+    your_experience: ""
+
+  - id: R6
+    tier: critical
+    kind: skill
+    requirement: Translating between design and engineering
+    evidence: "'You'll be a liaison between design and engineering, working to
+      solve complex user experience flows while ensuring they work for the
+      underlying engineering architecture'"
+    your_experience: ""
+
+  - id: R7
+    tier: critical
+    kind: skill
+    requirement: Communication with internal teams and high-profile external clients
+    evidence: "'excellent verbal and written communication skills for both
+      internal teams and external high-profile clients'; 'customers as large as
+      Microsoft to as small as solo designers'"
+    your_experience: ""
+
+  # ─── IMPORTANT ────────────────────────────────────────────────────────────
+
+  - id: R8
+    tier: important
+    kind: skill
+    requirement: Partnering with engineering on scalable, performant systems
+    evidence: "'Partner closely with engineering to ensure the systems are built
+      in a scalable, performant way that advances our needs in the future'"
+    your_experience: ""
+
+  - id: R9
+    tier: important
+    kind: skill
+    requirement: Simplifying complex user flows
+    evidence: "'Join forces with designers to find ways to present complex user
+      flows in a simple and easy to understand format'"
+    your_experience: ""
+
+  - id: R10
+    tier: important
+    kind: skill
+    requirement: Planning, prioritization and tracking key metrics
+    evidence: "'Participate in planning and prioritization, tracking key
+      metrics'"
+    your_experience: ""
+
+  - id: R11
+    tier: important
+    kind: skill
+    requirement: Go-to-market collaboration — positioning, messaging, launch
+    evidence: "'collaborating on marketing, messaging, positioning, and
+      go-to-market plans'"
+    your_experience: ""
+
+  - id: R12
+    tier: important
+    kind: quality
+    requirement: Ramping fast across unfamiliar product areas
+    evidence: "'experience all aspects of the product development process at a
+      rapid pace while gaining exposure across multiple product areas' — it's a
+      rotation program; they're screening for people who re-learn context fast"
+    your_experience: ""
+
+  # ─── NICE TO HAVE ─────────────────────────────────────────────────────────
+
+  - id: R13
+    tier: nice_to_have
+    kind: domain
+    requirement: Plugin or extensibility platforms
+    evidence: "project list: 'New features that allow designers and developers
+      to build custom plugins and tools'"
+    your_experience: ""
+
+  - id: R14
+    tier: nice_to_have
+    kind: domain
+    requirement: Real-time collaboration products
+    evidence: "'work together in real time from anywhere in the world'; 'New
+      ways for teams to collaborate as they define, design, and build'"
+    your_experience: ""
+
+  - id: R15
+    tier: nice_to_have
+    kind: domain
+    requirement: Figma power user
+    evidence: "Implied throughout — table stakes in their interviews. If your
+      R3/R4 stories happen to be IN Figma, say so there."
+    your_experience: ""
+
+  - id: R16
+    tier: nice_to_have
+    kind: domain
+    requirement: Design system adoption at scale
+    evidence: "project list: 'Design system features that improve adoption and
+      consistency at scale'"
+    note: "The scale/adoption angle on R3 — only fill if you have a distinct
+      story about driving adoption, not the same story twice."
+    your_experience: ""

@@ -1,0 +1,238 @@
+# Golden set — build step 2.
+#
+# A synthetic bank plus ~a dozen requirement → expected-experience cases with
+# known answers. Step 5's retrieval is tuned against this; the committed
+# baseline (keyword overlap) sets the floor it has to beat.
+#
+# The persona is synthetic on purpose — this repository is public. It is shaped
+# like the real use case (strategy & ops / early product roles, JD language
+# lifted from the DoorDash and Figma worksheets) so that the baseline's misses
+# here predict its misses on real data.
+#
+# Cases marked `note:` as paraphrase cases are EXPECTED to fail under the
+# keyword baseline. They stay in the set at full weight: they are the headroom
+# that justifies building hybrid retrieval in step 5.
+
+jobs:
+  - ref: swiftcart
+    employer: Swiftcart
+    title: Strategy & Operations Analyst
+    start_date: 2021-06
+    end_date: 2023-08
+    location: Toronto, ON
+
+  - ref: brightpath
+    employer: Brightpath
+    title: Product Operations Manager
+    start_date: 2023-09
+    location: Toronto, ON
+
+  - ref: campuseats
+    employer: CampusEats
+    title: Co-founder
+    start_date: 2019-09
+    end_date: 2021-05
+    location: Waterloo, ON
+
+experiences:
+  - ref: sql-pipeline
+    job: swiftcart
+    summary: >
+      Built the weekly courier-supply report joining order, shift and payout
+      data across the warehouse Postgres replicas and the Snowflake events
+      store. Complex SQL with window functions over multiple sources; ran
+      every Monday for 18 months and was adopted by the city general managers.
+    facts:
+      - kind: technology
+        value: SQL (window functions)
+      - kind: technology
+        value: Snowflake
+      - kind: technology
+        value: Postgres
+      - kind: scope
+        value: three data sources
+
+  - ref: acceptance-metric
+    job: swiftcart
+    summary: >
+      Owned the courier acceptance-rate metric for the Ontario region of the
+      grocery marketplace. Baseline 61%. Ran a surge-pay change in low-supply
+      zones during the dinner peak; acceptance reached 70% in eight weeks and
+      held through the quarter.
+    facts:
+      - kind: metric
+        value: "acceptance rate 61% → 70%"
+      - kind: scope
+        value: Ontario region
+      - kind: outcome
+        value: held through the quarter
+
+  - ref: ops-dashboard
+    job: swiftcart
+    summary: >
+      Built the operations dashboard in Looker tracking acceptance rate, batch
+      rate and delivery times week over week; reviewed every Monday with city
+      leads and used to decide the week's interventions.
+    facts:
+      - kind: technology
+        value: Looker
+      - kind: metric
+        value: week-over-week metrics
+
+  - ref: batching-experiment
+    job: swiftcart
+    summary: >
+      Designed and launched an A/B experiment on courier batching prompts,
+      wrote the readout and shared it with the national operations team.
+      Treatment cut unbatched orders by 12%.
+    facts:
+      - kind: metric
+        value: 12% fewer unbatched orders
+      - kind: technology
+        value: A/B testing
+
+  - ref: ai-automation
+    job: brightpath
+    summary: >
+      Automated the quarterly account-review deck with a Python script that
+      pulls usage data and drafts slides through the Claude API, cutting prep
+      from two days to under an hour per account manager.
+    facts:
+      - kind: technology
+        value: Python
+      - kind: technology
+        value: Claude API
+      - kind: metric
+        value: two days → one hour per deck
+      - kind: outcome
+        value: AI workflow automation adopted by the whole AM team
+
+  - ref: onboarding-rollout
+    job: brightpath
+    summary: >
+      Led the rollout of the new customer onboarding flow with cross-functional
+      partners in engineering, design and support, with no line authority over
+      any of them; shipped in six weeks.
+    facts:
+      - kind: collaborator
+        value: engineering, design, support
+      - kind: outcome
+        value: shipped in six weeks
+
+  - ref: spec-prototype
+    job: brightpath
+    summary: >
+      Wrote the product specs and built clickable Figma prototypes for the
+      onboarding redesign; ran weekly design reviews with two engineers and a
+      product designer.
+    facts:
+      - kind: technology
+        value: Figma
+      - kind: collaborator
+        value: two engineers, one product designer
+
+  - ref: unit-economics
+    job: swiftcart
+    summary: >
+      Built the per-order contribution-margin model in Google Sheets covering
+      courier pay, refunds and support cost — the unit economics used to set
+      the free-delivery threshold, trading growth against cost.
+    facts:
+      - kind: technology
+        value: Google Sheets
+      - kind: outcome
+        value: set the free-delivery threshold
+
+  - ref: zero-to-one
+    job: campuseats
+    summary: >
+      Co-founded a campus food delivery service and grew it to 400 weekly
+      orders with 12 couriers before graduating; handled pricing, courier pay
+      and restaurant onboarding personally.
+    facts:
+      - kind: metric
+        value: 400 weekly orders
+      - kind: scope
+        value: 12 couriers
+
+# ── Cases ────────────────────────────────────────────────────────────────────
+# expect: a ref (or list of refs — any in top-k counts), or `gap`.
+
+cases:
+  - id: G1
+    tier: critical
+    requirement: Comfortable building complex SQL queries across multiple data sources
+    expect: sql-pipeline
+
+  - id: G2
+    tier: critical
+    requirement: Owning a metric end-to-end and moving it against a baseline
+    expect: acceptance-metric
+
+  - id: G3
+    tier: critical
+    requirement: Dashboards and data visualization to manage week over week metrics
+    expect: ops-dashboard
+
+  - id: G4
+    tier: critical
+    requirement: Using AI tools to automate repetitive manual workflows
+    expect: ai-automation
+
+  - id: G5
+    tier: critical
+    requirement: Designing, launching and sharing readouts of operational experiments
+    expect: batching-experiment
+
+  - id: G6
+    tier: important
+    requirement: Influencing cross-functional partners without direct authority
+    expect: onboarding-rollout
+
+  - id: G7
+    tier: important
+    requirement: Unit economics balancing growth, cost and quality
+    expect: unit-economics
+
+  - id: G8
+    tier: important
+    requirement: Entrepreneurial — built something from the ground up
+    expect: zero-to-one
+    note: >
+      Paraphrase case. "Built from the ground up" shares almost no tokens with
+      "co-founded and grew". Keyword baselines are expected to miss this;
+      step 5's semantic layer is what should catch it.
+
+  - id: G9
+    tier: important
+    requirement: Writing product specs and prototyping user flows for new features
+    expect: spec-prototype
+
+  - id: G10
+    tier: important
+    requirement: Hands-on experience with economic modeling in spreadsheets
+    expect: unit-economics
+    note: >
+      Near-paraphrase case. The experience says "contribution-margin model in
+      Google Sheets"; the baseline only survives it because the stemmer maps
+      "modeling" to "model" and "economics" to "economic".
+
+  - id: G11
+    tier: critical
+    requirement: FedRAMP compliance and government cloud security certification
+    expect: gap
+
+  - id: G12
+    tier: important
+    requirement: People management — hiring, coaching and performance reviews for a team
+    expect: gap
+
+  - id: G13
+    tier: nice_to_have
+    requirement: Fluent French for serving the Quebec consumer market
+    expect: gap
+
+  - id: G14
+    tier: nice_to_have
+    requirement: Domain experience in grocery or convenience marketplaces
+    expect: acceptance-metric

@@ -325,6 +325,48 @@ def lint_cmd(
     typer.secho("No blocking issues.", fg=typer.colors.GREEN)
 
 
+# ── Evals ───────────────────────────────────────────────────────────────────
+
+
+@app.command("eval")
+def eval_cmd(
+    golden: Annotated[Path, typer.Argument(help="Golden set file")] = Path("evals/golden.yaml"),
+    k: Annotated[int, typer.Option("-k", help="Candidates retrieved per requirement")] = 3,
+    threshold: Annotated[
+        float, typer.Option("--threshold", help="Top score below this is called a gap")
+    ] = 0.2,
+    fail_under: Annotated[
+        float | None,
+        typer.Option("--fail-under", help="Exit 1 if accuracy (in %) falls below this"),
+    ] = None,
+) -> None:
+    """Score retrieval against a golden set of requirement → experience pairs.
+
+    A forced match (an expected gap answered with a confident candidate) always
+    fails the run: inventing coverage is the one thing this tool must never do.
+    """
+    from .evals import GoldenError, evaluate, load_golden
+
+    try:
+        golden_set = load_golden(golden)
+    except GoldenError as exc:
+        _fail(str(exc))
+        return
+
+    report = evaluate(golden_set, k=k, gap_threshold=threshold)
+    typer.echo(str(report))
+
+    if report.forced_matches:
+        raise typer.Exit(code=1)
+    if fail_under is not None and report.accuracy * 100 < fail_under:
+        typer.secho(
+            f"\nAccuracy {report.accuracy:.0%} is below --fail-under {fail_under:.0f}%",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+
 @app.command()
 def stats(db: DbOption = None) -> None:
     """Show what is in the bank."""

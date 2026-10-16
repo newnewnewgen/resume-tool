@@ -30,18 +30,25 @@
 #         important = strongly implied, gaps are survivable but visible
 #         nice_to_have = differentiator only
 #
-# READ THE ROLE RIGHT: this is a rotation program for "user-driven and deeply
-# technical" APMs. The program's stated spine is connecting THREE workflows —
-# AI, design-to-code, and design systems — across Figma's products. Every
-# critical requirement below feeds one of those three or the liaison role
-# between design and engineering. A generalist PM story matters less here than
-# proof you can sit in the middle of that triangle.
+# ── REQUIREMENT QUALITY BAR ──────────────────────────────────────────────────
 #
-# APPLICATION FORM NOTES (not requirements, but they're graded):
-#   - "Why do you want to join Figma?" — required, 3-4 sentences. Draft it from
-#     your R4/R5 answers; specifics about their products beat enthusiasm.
-#   - Website / Portfolio field — this is where R3 (visual design knack) gets
-#     judged before anyone meets you. Have something to put there.
+# Every requirement below passes one test: a screener could verify it from a
+# resume bullet or a portfolio link. JD lines that fail that test ("excitement
+# about AI", "a knack for design", "a love for designers") are not requirements
+# — they are evaluated through artifacts, the essay, or the interview. Each one
+# is translated here into the thing that actually gets checked, and what can't
+# be translated is in the SIGNALS section at the bottom, out of the match list.
+#
+# READ THE ROLE RIGHT: a rotation program for "user-driven and deeply
+# technical" APMs, whose stated spine is connecting three workflows — AI,
+# design-to-code, and design systems. The screen for an early-career technical
+# PM role runs on artifacts: what you shipped, what you built, what a link
+# shows. Titles carry almost nothing at this level.
+#
+# APPLICATION FORM NOTES (graded, but not requirements):
+#   - "Why do you want to join Figma?" — required, 3-4 sentences.
+#   - Website / Portfolio field — where R3/R4 get verified before anyone
+#     reads a sentence.
 #   - They link four blog posts in the JD (Config 2026 recap, MCP server
 #     post, etc.). Read them; they are the interview's shared vocabulary.
 #   - Application limits: max 5 Figma applications per rolling 30 days, no
@@ -87,150 +94,178 @@ requirements:
   - id: R1
     tier: critical
     kind: skill
-    requirement: Working on deep, technically complex problems
-    evidence: "'user-driven and deeply technical Associate Product Managers';
-      'Comfortability working on deep, technically complex problems'; 'ensuring
-      they work for the underlying engineering architecture'"
-    note: "They say 'deeply technical' twice in different words. The story
-      should show you went below the UI — data model, rendering, API design,
-      performance — not that you sat near engineers."
+    requirement: Shipped a user-facing launch you can name, with your specific role
+    evidence: "'experience working on user-facing product launches'"
+    note: "A named product or feature, real users, and what YOU did to get it
+      out — decisions you made, not meetings you attended. 'Contributed to' is
+      the version that fails the screen."
     your_experience: ""
 
   - id: R2
     tier: critical
     kind: skill
-    requirement: Shipping a user-facing product launch
-    evidence: "'experience working on user-facing product launches'"
-    note: "Named thing, real users, your specific role in getting it out the
-      door. 'Contributed to' is the weak version of this story."
+    requirement: Built something technically non-trivial yourself
+    evidence: "'user-driven and deeply technical Associate Product Managers';
+      'Comfortability working on deep, technically complex problems' — said
+      twice in different words"
+    note: "At early-career level this is screened via what you built: code you
+      wrote, a system you designed, an engineering internship, a side project
+      with real users. The story should go below the UI — data model, API
+      design, performance — not 'worked closely with engineers'."
     your_experience: ""
 
   - id: R3
     tier: critical
     kind: skill
-    requirement: Hands-on with design systems, AI in design, or design-to-code tools
+    requirement: A named, hands-on project in design systems, AI-in-design, or design-to-code
     evidence: "'Experience with design systems, AI applications in design, or
       design-to-code tools'; program intro: 'connect AI, design-to-code, and
-      design systems workflows across Figma's suite of products'"
-    note: "The JD's center of gravity — the qualification list and the program
-      description name the same three things. One concrete story in ANY of the
-      three beats shallow familiarity with all of them."
+      design systems workflows'"
+    note: "The JD's center of gravity. 'Hands-on' means a thing that exists and
+      can be named: a plugin, a component library, a codegen or MCP workflow, a
+      prototype. One real artifact in any of the three beats familiarity with
+      all of them. This is also the only legible form of the JD's 'excitement
+      about AI' line — conviction is screened as a built thing, so if this is
+      blank, that line is blank too."
     your_experience: ""
 
   - id: R4
     tier: critical
-    kind: quality
-    requirement: Visual design / design workflow fluency
-    evidence: "'A knack for visual design and/or design workflows'; form has a
-      Website / Portfolio field"
-    note: "Judged from your portfolio link before anyone reads a sentence.
-      What you built, prototyped, or designed — not what you appreciate."
+    kind: skill
+    requirement: A reachable portfolio artifact — interfaces or prototypes you made
+    evidence: "'A knack for visual design and/or design workflows' + the form's
+      Website / Portfolio field, which is where that 'knack' is actually checked"
+    note: "Not a quality, a deliverable: a URL that shows something you
+      designed, prototyped or built. If nothing exists yet, making one thing
+      worth linking is the highest-leverage prep before the deadline."
     your_experience: ""
 
   - id: R5
     tier: critical
-    kind: quality
-    requirement: Conviction about AI changing how design works
-    evidence: "'Excitement about shaping how design evolves in an AI-powered
-      world'; intro: 'iterating with AI'; project list: 'AI-powered workflows
-      that streamline design processes'"
-    note: "Feeds the required 'Why Figma?' answer too. An opinion backed by
-      something you built or tested lands; 'AI is transformative' does not."
+    kind: skill
+    requirement: Worked directly with external users or customers on a product decision
+    evidence: "'Work closely with customers as large as Microsoft to as small as
+      solo designers'; 'building relationships with key customers'"
+    note: "The verifiable core of 'a love for designers': named user research,
+      pilot customers, beta programs, client-facing delivery — contact that
+      changed what got built."
     your_experience: ""
 
   - id: R6
     tier: critical
     kind: skill
-    requirement: Translating between design and engineering
-    evidence: "'You'll be a liaison between design and engineering, working to
-      solve complex user experience flows while ensuring they work for the
-      underlying engineering architecture'"
-    your_experience: ""
-
-  - id: R7
-    tier: critical
-    kind: skill
-    requirement: Communication with internal teams and high-profile external clients
-    evidence: "'excellent verbal and written communication skills for both
-      internal teams and external high-profile clients'; 'customers as large as
-      Microsoft to as small as solo designers'"
+    requirement: Owned a feature spanning the UX and its engineering constraints
+    evidence: "'liaison between design and engineering, working to solve complex
+      user experience flows while ensuring they work for the underlying
+      engineering architecture'"
+    note: "One feature where you held both sides: the flow users saw AND a
+      technical tradeoff you had to work within or negotiate (latency, data
+      model, platform limit). This is the role in miniature."
     your_experience: ""
 
   # ─── IMPORTANT ────────────────────────────────────────────────────────────
 
+  - id: R7
+    tier: important
+    kind: skill
+    requirement: Hit and handled a scalability or performance constraint with engineers
+    evidence: "'Partner closely with engineering to ensure the systems are built
+      in a scalable, performant way'"
+    your_experience: ""
+
   - id: R8
     tier: important
     kind: skill
-    requirement: Partnering with engineering on scalable, performant systems
-    evidence: "'Partner closely with engineering to ensure the systems are built
-      in a scalable, performant way that advances our needs in the future'"
+    requirement: Simplified a complex flow, with a measurable before/after
+    evidence: "'present complex user flows in a simple and easy to understand
+      format'"
+    note: "Steps removed, completion rate up, support tickets down — a number,
+      or it reads as taste rather than work."
     your_experience: ""
 
   - id: R9
     tier: important
     kind: skill
-    requirement: Simplifying complex user flows
-    evidence: "'Join forces with designers to find ways to present complex user
-      flows in a simple and easy to understand format'"
+    requirement: Defined or owned a product metric and used it to decide something
+    evidence: "'Participate in planning and prioritization, tracking key metrics'"
     your_experience: ""
 
   - id: R10
     tier: important
     kind: skill
-    requirement: Planning, prioritization and tracking key metrics
-    evidence: "'Participate in planning and prioritization, tracking key
-      metrics'"
+    requirement: Hands-on part in a launch's positioning, messaging or go-to-market
+    evidence: "'collaborating on marketing, messaging, positioning, and
+      go-to-market plans'"
+    note: "A thing you wrote or ran: launch post, demo, onboarding email
+      sequence, pricing page copy."
     your_experience: ""
 
   - id: R11
     tier: important
-    kind: skill
-    requirement: Go-to-market collaboration — positioning, messaging, launch
-    evidence: "'collaborating on marketing, messaging, positioning, and
-      go-to-market plans'"
-    your_experience: ""
-
-  - id: R12
-    tier: important
     kind: quality
-    requirement: Ramping fast across unfamiliar product areas
-    evidence: "'experience all aspects of the product development process at a
-      rapid pace while gaining exposure across multiple product areas' — it's a
-      rotation program; they're screening for people who re-learn context fast"
+    requirement: Ramped on an unfamiliar domain fast — a concrete instance with a timeframe
+    evidence: "'rapid pace while gaining exposure across multiple product areas'
+      — it's a rotation program; re-learning context quickly is the job"
+    note: "Quality tier, but still screenable: new team/domain/codebase, what
+      you shipped there, and how long it took."
     your_experience: ""
 
   # ─── NICE TO HAVE ─────────────────────────────────────────────────────────
 
+  - id: R12
+    tier: nice_to_have
+    kind: domain
+    requirement: Built on a plugin or extensibility platform
+    evidence: "project list: 'New features that allow designers and developers
+      to build custom plugins and tools'"
+    note: "A published Figma plugin would double as R3 and R4 evidence."
+    your_experience: ""
+
   - id: R13
     tier: nice_to_have
     kind: domain
-    requirement: Plugin or extensibility platforms
-    evidence: "project list: 'New features that allow designers and developers
-      to build custom plugins and tools'"
+    requirement: Worked on a real-time or multiplayer collaboration product
+    evidence: "'work together in real time from anywhere in the world'; 'New
+      ways for teams to collaborate as they define, design, and build'"
     your_experience: ""
 
   - id: R14
     tier: nice_to_have
     kind: domain
-    requirement: Real-time collaboration products
-    evidence: "'work together in real time from anywhere in the world'; 'New
-      ways for teams to collaborate as they define, design, and build'"
+    requirement: Published or team-adopted work IN Figma — a plugin, library, or template
+    evidence: "Implied throughout. 'Power user' claims aren't checkable;
+      published community items and adopted libraries are."
     your_experience: ""
 
   - id: R15
     tier: nice_to_have
     kind: domain
-    requirement: Figma power user
-    evidence: "Implied throughout — table stakes in their interviews. If your
-      R3/R4 stories happen to be IN Figma, say so there."
-    your_experience: ""
-
-  - id: R16
-    tier: nice_to_have
-    kind: domain
-    requirement: Design system adoption at scale
+    requirement: Drove adoption of a design system or shared component library
     evidence: "project list: 'Design system features that improve adoption and
       consistency at scale'"
-    note: "The scale/adoption angle on R3 — only fill if you have a distinct
-      story about driving adoption, not the same story twice."
+    note: "The adoption angle on R3 — only fill with a distinct story, not the
+      same one twice."
     your_experience: ""
+
+# ── SIGNALS — not requirements ───────────────────────────────────────────────
+# Real parts of the evaluation that no resume bullet can carry. Nothing here
+# gets matched against experiences; prep happens elsewhere.
+signals:
+  - id: S1
+    signal: "'Why do you want to join Figma?' — required form field, 3-4 sentences"
+    prep: "Write it from specifics: a product decision of theirs you can name,
+      and your R3 artifact. It is also the writing sample for S3."
+
+  - id: S2
+    signal: AI conviction ('excitement about shaping how design evolves in an
+      AI-powered world')
+    prep: "Evaluated in conversation and the essay. The only resume-side
+      evidence is the R3 artifact; the interview-side prep is having an
+      opinion you formed by building, including where AI tools failed you.
+      Their four linked blog posts are the shared vocabulary."
+
+  - id: S3
+    signal: Verbal and written communication for internal teams and
+      high-profile external clients
+    prep: "Carried by the application itself — the essay, the portfolio's
+      writing, the resume's clarity — then the interviews. Not a worksheet row."

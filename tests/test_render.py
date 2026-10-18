@@ -207,3 +207,24 @@ def test_extract_normalizes_word_lists(tmp_path):
     path = tmp_path / "list.docx"
     d.save(str(path))
     assert "•" in extract_text(path)
+
+
+def test_tight_mode_changes_spacing_not_text(tmp_path):
+    """`tight` compresses whitespace only — the extracted text is identical."""
+    from resume_tool.render import Contact, Entry, ResumeDoc, Section, write_docx
+    doc = ResumeDoc(
+        contact=Contact(name="Jane Doe", email="jane@example.com", phone="555-010-0100"),
+        sections=[Section(heading="Experience", entries=[
+            Entry(title="Engineer", organization="Acme", start_date="2020",
+                  bullets=["Shipped the billing rewrite."])])],
+    )
+    normal = write_docx(doc, tmp_path / "normal.docx")
+    compact = write_docx(doc, tmp_path / "tight.docx", tight=True)
+    assert extract_text(normal) == extract_text(compact)
+
+
+def test_single_date_entry_renders_without_range():
+    """A one-off (project, award) with start == end shows one date, not 'X – X'."""
+    entry = Entry(title="Hack Week", organization="Acme",
+                  start_date="Mar 2024", end_date="Mar 2024")
+    assert entry.date_range == "Mar 2024"

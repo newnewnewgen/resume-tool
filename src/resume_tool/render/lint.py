@@ -18,7 +18,8 @@ KNOWN_HEADINGS = {
     "experience", "work experience", "professional experience", "employment",
     "employment history", "work history", "relevant experience",
     "education", "skills", "technical skills", "core skills",
-    "projects", "certifications", "licenses", "awards", "honors", "honours",
+    "projects", "projects & leadership", "projects and leadership",
+    "certifications", "licenses", "awards", "honors", "honours",
     "publications", "languages", "volunteer", "leadership", "activities",
     "involvement", "interests", "references", "additional experience",
 }

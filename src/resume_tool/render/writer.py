@@ -19,6 +19,7 @@ from pathlib import Path
 
 from docx import Document
 from docx.enum.text import WD_TAB_ALIGNMENT
+from docx.oxml.ns import qn
 from docx.shared import Inches, Pt
 
 from .document import ResumeDoc
@@ -36,12 +37,18 @@ BULLET_INDENT_IN = 0.16
 
 
 def write_docx(doc: ResumeDoc, path: Path | str, *, font: str = DEFAULT_FONT,
-               size: float = DEFAULT_SIZE, margin: float = MARGIN_IN) -> Path:
-    """Render a ResumeDoc to an ATS-safe .docx and return the path."""
+               size: float = DEFAULT_SIZE, margin: float = MARGIN_IN,
+               tight: bool = False) -> Path:
+    """Render a ResumeDoc to an ATS-safe .docx and return the path.
+
+    `tight` halves the vertical whitespace between entries and sections — for
+    squeezing a full career onto one page without shrinking the type further.
+    """
     path = Path(path)
     d = Document()
     _setup(d, font, size, margin)
     tab = Inches(PAGE_WIDTH_IN - 2 * margin)
+    entry_gap = 3 if tight else 5
 
     p = _para(d, space_after=1)
     _run(p, doc.contact.name.upper(), bold=True, size=NAME_SIZE)
@@ -55,10 +62,10 @@ def write_docx(doc: ResumeDoc, path: Path | str, *, font: str = DEFAULT_FONT,
         _run(_para(d), doc.summary, size=size)
 
     for section in doc.sections:
-        _heading(d, section.heading.upper())
+        _heading(d, section.heading.upper(), tight=tight)
 
         for i, entry in enumerate(section.entries):
-            p = _para(d, space_before=(5 if i else 1), tab=tab)
+            p = _para(d, space_before=(entry_gap if i else 1), tab=tab)
             _run(p, entry.title, bold=True, size=size)
             if entry.date_range:
                 _run(p, "\t" + entry.date_range, size=size)
@@ -122,10 +129,26 @@ def _run(p, text: str, *, bold: bool = False, italic: bool = False,
     return r
 
 
-def _heading(d: Document, text: str):
-    p = _para(d, space_before=7, space_after=2)
+def _heading(d: Document, text: str, tight: bool = False):
+    p = _para(d, space_before=4 if tight else 7, space_after=1 if tight else 2)
     _run(p, text, bold=True, size=HEADING_SIZE)
+    _bottom_rule(p)
     return p
+
+
+def _bottom_rule(p) -> None:
+    """A thin border under a heading. Pure formatting: parsers extract the text
+    of a bordered paragraph identically, so this costs nothing in ATS terms."""
+    pPr = p._p.get_or_add_pPr()
+    borders = pPr.makeelement(qn("w:pBdr"), {})
+    bottom = pPr.makeelement(qn("w:bottom"), {
+        qn("w:val"): "single",
+        qn("w:sz"): "6",       # eighths of a point: 0.75pt
+        qn("w:space"): "2",
+        qn("w:color"): "999999",
+    })
+    borders.append(bottom)
+    pPr.append(borders)
 
 
 def _bullet(d: Document, text: str, size: float):

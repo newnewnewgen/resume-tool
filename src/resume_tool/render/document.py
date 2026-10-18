@@ -38,6 +38,8 @@ class Entry:
     def date_range(self) -> str:
         if not self.start_date:
             return ""
+        if self.end_date == self.start_date:
+            return self.start_date  # a one-off: a project, an award
         return f"{self.start_date} – {self.end_date or 'Present'}"
 
 

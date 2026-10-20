@@ -46,7 +46,7 @@ def write_docx(doc: ResumeDoc, path: Path | str, *, font: str = DEFAULT_FONT,
     """
     path = Path(path)
     d = Document()
-    _setup(d, font, size, margin)
+    _setup(d, font, size, margin, line_spacing=0.97 if tight else 1.0)
     tab = Inches(PAGE_WIDTH_IN - 2 * margin)
     entry_gap = 3 if tight else 5
 
@@ -97,7 +97,8 @@ def write_docx(doc: ResumeDoc, path: Path | str, *, font: str = DEFAULT_FONT,
 # ── internals ───────────────────────────────────────────────────────────────
 
 
-def _setup(d: Document, font: str, size: float, margin: float) -> None:
+def _setup(d: Document, font: str, size: float, margin: float,
+           line_spacing: float = 1.0) -> None:
     s = d.sections[0]
     s.top_margin = s.bottom_margin = Inches(margin)
     s.left_margin = s.right_margin = Inches(margin)
@@ -108,7 +109,7 @@ def _setup(d: Document, font: str, size: float, margin: float) -> None:
     pf = normal.paragraph_format
     pf.space_before = Pt(0)
     pf.space_after = Pt(0)
-    pf.line_spacing = 1.0
+    pf.line_spacing = line_spacing
 
 
 def _para(d: Document, space_before: float = 0, space_after: float = 0, tab=None):

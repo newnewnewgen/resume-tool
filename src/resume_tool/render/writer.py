@@ -38,11 +38,14 @@ BULLET_INDENT_IN = 0.16
 
 def write_docx(doc: ResumeDoc, path: Path | str, *, font: str = DEFAULT_FONT,
                size: float = DEFAULT_SIZE, margin: float = MARGIN_IN,
-               tight: bool = False) -> Path:
+               tight: bool = False, rule_colors: list[str] | None = None,
+               link_color: str = "0563C1") -> Path:
     """Render a ResumeDoc to an ATS-safe .docx and return the path.
 
     `tight` halves the vertical whitespace between entries and sections — for
     squeezing a full career onto one page without shrinking the type further.
+    `rule_colors` cycles hex colors across the section heading rules; color is
+    formatting only, so extraction and parsing are unaffected.
     """
     path = Path(path)
     d = Document()
@@ -61,15 +64,16 @@ def write_docx(doc: ResumeDoc, path: Path | str, *, font: str = DEFAULT_FONT,
         _heading(d, "SUMMARY")
         _run(_para(d), doc.summary, size=size)
 
-    for section in doc.sections:
-        _heading(d, section.heading.upper(), tight=tight)
+    for index, section in enumerate(doc.sections):
+        rule = rule_colors[index % len(rule_colors)] if rule_colors else "999999"
+        _heading(d, section.heading.upper(), tight=tight, rule_color=rule)
 
         for i, entry in enumerate(section.entries):
             p = _para(d, space_before=(entry_gap if i else 1), tab=tab)
             _run(p, entry.title, bold=True, size=size)
             if entry.link_label and entry.link_url:
                 _run(p, " | ", size=size)
-                _hyperlink(p, entry.link_label, entry.link_url, size)
+                _hyperlink(p, entry.link_label, entry.link_url, size, link_color)
             if entry.date_range:
                 _run(p, "\t" + entry.date_range, size=size)
 
@@ -133,14 +137,15 @@ def _run(p, text: str, *, bold: bool = False, italic: bool = False,
     return r
 
 
-def _heading(d: Document, text: str, tight: bool = False):
+def _heading(d: Document, text: str, tight: bool = False,
+             rule_color: str = "999999"):
     p = _para(d, space_before=4 if tight else 7, space_after=1 if tight else 2)
     _run(p, text, bold=True, size=HEADING_SIZE)
-    _bottom_rule(p)
+    _bottom_rule(p, rule_color)
     return p
 
 
-def _hyperlink(p, text: str, url: str, size: float):
+def _hyperlink(p, text: str, url: str, size: float, color: str = "0563C1"):
     """A real clickable hyperlink run. The label is an ordinary text run, so
     extraction and parsers see it; only the target lives in the relationship."""
     from docx.opc.constants import RELATIONSHIP_TYPE as RT
@@ -149,7 +154,7 @@ def _hyperlink(p, text: str, url: str, size: float):
     link = p._p.makeelement(qn("w:hyperlink"), {qn("r:id"): r_id})
     run = p._p.makeelement(qn("w:r"), {})
     rpr = p._p.makeelement(qn("w:rPr"), {})
-    rpr.append(p._p.makeelement(qn("w:color"), {qn("w:val"): "0563C1"}))
+    rpr.append(p._p.makeelement(qn("w:color"), {qn("w:val"): color}))
     rpr.append(p._p.makeelement(qn("w:sz"), {qn("w:val"): str(int(size * 2))}))
     rpr.append(p._p.makeelement(qn("w:u"), {qn("w:val"): "single"}))
     run.append(rpr)
@@ -161,16 +166,16 @@ def _hyperlink(p, text: str, url: str, size: float):
     return link
 
 
-def _bottom_rule(p) -> None:
+def _bottom_rule(p, color: str = "999999") -> None:
     """A thin border under a heading. Pure formatting: parsers extract the text
     of a bordered paragraph identically, so this costs nothing in ATS terms."""
     pPr = p._p.get_or_add_pPr()
     borders = pPr.makeelement(qn("w:pBdr"), {})
     bottom = pPr.makeelement(qn("w:bottom"), {
         qn("w:val"): "single",
-        qn("w:sz"): "6",       # eighths of a point: 0.75pt
+        qn("w:sz"): "8",       # eighths of a point: 1pt
         qn("w:space"): "2",
-        qn("w:color"): "999999",
+        qn("w:color"): color,
     })
     borders.append(bottom)
     pPr.append(borders)

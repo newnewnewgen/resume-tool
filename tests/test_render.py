@@ -223,6 +223,24 @@ def test_tight_mode_changes_spacing_not_text(tmp_path):
     assert extract_text(normal) == extract_text(compact)
 
 
+def test_hyperlink_label_survives_extraction(tmp_path):
+    """The link label must be readable text; the URL lives in the relationship."""
+    from resume_tool.render import Contact, Entry, ResumeDoc, Section, write_docx
+    doc = ResumeDoc(
+        contact=Contact(name="Jane Doe", email="jane@example.com", phone="555-010-0100"),
+        sections=[Section(heading="Projects", entries=[
+            Entry(title="Sidecar", organization="",
+                  link_label="video", link_url="https://example.com/demo",
+                  bullets=["Shipped the thing."])])],
+    )
+    path = write_docx(doc, tmp_path / "linked.docx")
+    text = extract_text(path)
+    assert "Sidecar | video" in text
+    d = docx.Document(str(path))
+    targets = [r.target_ref for r in d.part.rels.values() if "hyperlink" in r.reltype]
+    assert "https://example.com/demo" in targets
+
+
 def test_single_date_entry_renders_without_range():
     """A one-off (project, award) with start == end shows one date, not 'X – X'."""
     entry = Entry(title="Hack Week", organization="Acme",

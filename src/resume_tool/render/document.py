@@ -33,6 +33,11 @@ class Entry:
     end_date: str = ""          # blank means current
     location: str = ""
     bullets: list[str] = field(default_factory=list)
+    # A clickable artifact on the title line, rendered as " | <label>".
+    # The URL lives in the link target only, so keep critical URLs (portfolio,
+    # email) in plain text elsewhere — parsers read labels, not targets.
+    link_label: str = ""
+    link_url: str = ""
 
     @property
     def date_range(self) -> str:

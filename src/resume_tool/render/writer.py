@@ -67,6 +67,9 @@ def write_docx(doc: ResumeDoc, path: Path | str, *, font: str = DEFAULT_FONT,
         for i, entry in enumerate(section.entries):
             p = _para(d, space_before=(entry_gap if i else 1), tab=tab)
             _run(p, entry.title, bold=True, size=size)
+            if entry.link_label and entry.link_url:
+                _run(p, " | ", size=size)
+                _hyperlink(p, entry.link_label, entry.link_url, size)
             if entry.date_range:
                 _run(p, "\t" + entry.date_range, size=size)
 
@@ -135,6 +138,27 @@ def _heading(d: Document, text: str, tight: bool = False):
     _run(p, text, bold=True, size=HEADING_SIZE)
     _bottom_rule(p)
     return p
+
+
+def _hyperlink(p, text: str, url: str, size: float):
+    """A real clickable hyperlink run. The label is an ordinary text run, so
+    extraction and parsers see it; only the target lives in the relationship."""
+    from docx.opc.constants import RELATIONSHIP_TYPE as RT
+
+    r_id = p.part.relate_to(url, RT.HYPERLINK, is_external=True)
+    link = p._p.makeelement(qn("w:hyperlink"), {qn("r:id"): r_id})
+    run = p._p.makeelement(qn("w:r"), {})
+    rpr = p._p.makeelement(qn("w:rPr"), {})
+    rpr.append(p._p.makeelement(qn("w:color"), {qn("w:val"): "0563C1"}))
+    rpr.append(p._p.makeelement(qn("w:sz"), {qn("w:val"): str(int(size * 2))}))
+    rpr.append(p._p.makeelement(qn("w:u"), {qn("w:val"): "single"}))
+    run.append(rpr)
+    t = p._p.makeelement(qn("w:t"), {})
+    t.text = text
+    run.append(t)
+    link.append(run)
+    p._p.append(link)
+    return link
 
 
 def _bottom_rule(p) -> None:

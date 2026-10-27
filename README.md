@@ -3,7 +3,8 @@
 Personal tool. Matches your experience against a job description, surfaces the gaps it
 can't cover, and builds an ATS-parseable resume.
 
-See [SPEC.md](SPEC.md) for the full design.
+See [SPEC.md](SPEC.md) for the full design, and [docs/process.md](docs/process.md)
+for the standard per-application run (what the tool automates step by step).
 
 ## Status
 

@@ -85,7 +85,13 @@ re-made.
 6. telling                  → reuse existing if angle fits, else generate
 7. assemble                 → .docx
 8. ATS round-trip test      → pass/fail with specifics
+9. cold-reader review       → JD-only context; findings are proposals, the
+                              user's accept/reject verdicts are recorded
 ```
+
+Step 9 was added after the first full manual run: fresh-context review caught
+credibility and framing problems that no amount of inside-context editing had
+seen. The full per-application procedure is in [docs/process.md](docs/process.md).
 
 **Step 5 is the whole product.** v1 force-matched every requirement to the best of three
 candidates even when none fit, so a missing capability silently became a weak bullet. Here a

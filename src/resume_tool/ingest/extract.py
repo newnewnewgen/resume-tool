@@ -13,7 +13,7 @@ def extract_text(path: Path | str) -> str:
     """Extract plain text from a resume file (.txt, .md, .pdf, .docx)."""
     path = Path(path)
     if not path.exists():
-        raise FileNotFoundError(path)
+        raise FileNotFoundError(f"file not found: {path} — check the path and try again")
 
     suffix = path.suffix.lower()
     if suffix in {".txt", ".md"}:

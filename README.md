@@ -16,7 +16,7 @@ and the eval harness with its golden set. No LLM dependency yet; nothing here ne
 | 1 | Schema + SQLite + ingest resume → Experiences | ✅ done |
 | 2 | Eval harness + golden set | ✅ done |
 | 3 | ATS round-trip test + docx writer | ✅ done |
-| 4 | JD → tiered requirements | ✅ built — acceptance eval vs the hand-made worksheets runs with an API key |
+| 4 | JD → tiered requirements | ✅ done — first live acceptance run vs the hand-built Figma worksheet: 80% coverage, 6/6 critical, 92% tier agreement |
 | 5 | Retrieval + gap detection | |
 | 6 | Telling generation + reuse + truth check | |
 | 7 | Assembly | |

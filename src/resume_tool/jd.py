@@ -140,17 +140,71 @@ def _build_prompt(jd_text: str) -> str:
 _FENCE_RE = re.compile(r"^```[a-z]*\n|\n```$", re.MULTILINE)
 
 
+def _strip_trailing_commas(text: str) -> str:
+    """Remove commas that directly precede } or ] — outside string literals.
+
+    Models emit these often enough that strict json.loads is the wrong
+    gate. A character scan (not a regex) so quoted text is never touched.
+    """
+    out: list[str] = []
+    in_string = False
+    escaped = False
+    for i, ch in enumerate(text):
+        if in_string:
+            out.append(ch)
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+            out.append(ch)
+            continue
+        if ch == ",":
+            nxt = next((c for c in text[i + 1:] if not c.isspace()), "")
+            if nxt in "}]":
+                continue
+        out.append(ch)
+    return "".join(out)
+
+
+def _loads(raw: str) -> dict:
+    stripped = _FENCE_RE.sub("", raw.strip()).strip()
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError:
+        return json.loads(_strip_trailing_commas(stripped))
+
+
 def parse_jd(jd_text: str, complete_fn: CompleteFn = complete) -> ParsedJD:
-    """Run the JD through the model and validate the result strictly."""
+    """Run the JD through the model and validate the result strictly.
+
+    A malformed response gets one corrective round-trip: the broken output
+    and the parser's error go back to the model, which returns repaired
+    JSON. Validation stays strict either way.
+    """
     if not jd_text.strip():
         raise JDParseError("the job description is empty")
 
     raw = complete_fn(SYSTEM_PROMPT, _build_prompt(jd_text))
-    stripped = _FENCE_RE.sub("", raw.strip()).strip()
     try:
-        data = json.loads(stripped)
-    except json.JSONDecodeError as exc:
-        raise JDParseError(f"model did not return valid JSON: {exc}") from exc
+        data = _loads(raw)
+    except json.JSONDecodeError as first_error:
+        retry = complete_fn(
+            SYSTEM_PROMPT,
+            "Your previous output failed to parse as JSON.\n"
+            f"Parser error: {first_error}\n\nYour previous output:\n{raw}\n\n"
+            "Return the corrected JSON only — no prose, no fences.",
+        )
+        try:
+            data = _loads(retry)
+        except json.JSONDecodeError as exc:
+            raise JDParseError(
+                f"model did not return valid JSON even after a retry: {exc}"
+            ) from exc
     return _validate(data)
 
 

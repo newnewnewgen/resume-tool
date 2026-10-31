@@ -104,6 +104,42 @@ def test_parse_jd_rejects_non_json():
         parse_jd("a JD", complete_fn=lambda s, p: "Sure! Here are the requirements:")
 
 
+def test_parse_jd_tolerates_trailing_commas():
+    # The first real live run failed on exactly this.
+    text = json.dumps(GOOD_OUTPUT, indent=2)
+    text = text.replace('"evidence": "\'Are you authorized to work...\'"',
+                        '"evidence": "\'Are you authorized to work...\'",')
+    parsed = parse_jd("a JD", complete_fn=lambda s, p: text)
+    assert parsed.company == "Acme"
+
+
+def test_trailing_comma_stripper_leaves_strings_alone():
+    from resume_tool.jd import _strip_trailing_commas
+    hostile = '{"a": "text with ,} inside", "b": [1, 2,], }'
+    assert json.loads(_strip_trailing_commas(hostile)) == \
+        {"a": "text with ,} inside", "b": [1, 2]}
+
+
+def test_parse_jd_retries_once_with_the_error():
+    calls = []
+
+    def flaky(system, prompt):
+        calls.append(prompt)
+        if len(calls) == 1:
+            return "{ this is not json at all"
+        assert "failed to parse" in prompt and "this is not json" in prompt
+        return json.dumps(GOOD_OUTPUT)
+
+    parsed = parse_jd("a JD", complete_fn=flaky)
+    assert parsed.company == "Acme"
+    assert len(calls) == 2
+
+
+def test_parse_jd_gives_up_after_one_retry():
+    with pytest.raises(JDParseError, match="after a retry"):
+        parse_jd("a JD", complete_fn=lambda s, p: "never json")
+
+
 @pytest.mark.parametrize(
     ("mutate", "message"),
     [

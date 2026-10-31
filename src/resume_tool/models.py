@@ -28,6 +28,7 @@ class RequirementKind(StrEnum):
     KNOCKOUT = "knockout"
     SKILL = "skill"
     QUALITY = "quality"
+    DOMAIN = "domain"
 
 
 class MatchState(StrEnum):

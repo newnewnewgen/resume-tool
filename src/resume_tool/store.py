@@ -209,6 +209,27 @@ def tellings_for(conn: sqlite3.Connection, experience_id: int) -> list[Telling]:
     ]
 
 
+# ── Applications ────────────────────────────────────────────────────────────
+
+
+def add_application(
+    conn: sqlite3.Connection, company: str, role_title: str, jd_text: str
+) -> int:
+    with conn:
+        cur = conn.execute(
+            "INSERT INTO application (company, role_title, jd_text) VALUES (?, ?, ?)",
+            (company, role_title, jd_text),
+        )
+    return cur.lastrowid
+
+
+def requirements_for(conn: sqlite3.Connection, application_id: int) -> list[sqlite3.Row]:
+    return conn.execute(
+        "SELECT * FROM requirement WHERE application_id = ? ORDER BY position",
+        (application_id,),
+    ).fetchall()
+
+
 # ── Summary ─────────────────────────────────────────────────────────────────
 
 

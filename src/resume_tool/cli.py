@@ -19,7 +19,7 @@ from .ingest import (
     parse_resume,
     write_draft,
 )
-from .models import Experience, Fact, FactKind, InvalidDate, Job
+from .models import Experience, Fact, FactKind, InvalidDate, Job, Tier
 
 app = typer.Typer(
     help="Personal resume tool — match experience to job descriptions, surface gaps.",
@@ -323,6 +323,82 @@ def lint_cmd(
     if errors:
         raise typer.Exit(code=1)
     typer.secho("No blocking issues.", fg=typer.colors.GREEN)
+
+
+# ── Step 4: JD → requirements ───────────────────────────────────────────────
+
+
+@app.command("parse-jd")
+def parse_jd_cmd(
+    jd: Annotated[Path, typer.Argument(help="Job description file (.txt, .md, .pdf, .docx)")],
+    out: Annotated[Path | None, typer.Option("--out", "-o", help="Worksheet path (default: worksheets/<company>.yaml)")] = None,
+    save: Annotated[bool, typer.Option("--store", help="Also store the application + requirements in the bank")] = False,
+    db: DbOption = None,
+) -> None:
+    """Turn a JD into a tiered, screenable requirements worksheet (uses the LLM)."""
+    from .jd import JDParseError, parse_jd, render_worksheet, store_application
+    from .llm import LLMError
+
+    try:
+        text = extract_text(jd)
+    except (FileNotFoundError, UnsupportedFormat) as exc:
+        _fail(str(exc))
+        return
+
+    try:
+        parsed = parse_jd(text)
+    except (JDParseError, LLMError) as exc:
+        _fail(str(exc))
+        return
+
+    slug = "".join(c if c.isalnum() else "-" for c in parsed.company.lower()).strip("-")
+    path = out or Path("worksheets") / f"{slug or 'worksheet'}.yaml"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(render_worksheet(parsed, path.name), encoding="utf-8")
+
+    counts = ", ".join(f"{len(parsed.by_tier(t))} {t.value}" for t in Tier)
+    typer.secho(
+        f"{parsed.company} — {parsed.role_title}: "
+        f"{len(parsed.knockouts)} knockout(s), {counts}, "
+        f"{len(parsed.signals)} signal(s)",
+        fg=typer.colors.GREEN,
+    )
+    typer.echo(f"Worksheet written to {path}")
+    typer.echo(f"Fill it in a gitignored copy:  cp {path} {path.with_suffix('')}.filled.yaml")
+
+    if save:
+        conn = _open(db)
+        try:
+            application_id = store_application(conn, parsed, text)
+        finally:
+            conn.close()
+        typer.secho(f"Stored as application {application_id}", fg=typer.colors.GREEN)
+
+
+@app.command("eval-jd")
+def eval_jd_cmd(
+    generated: Annotated[Path, typer.Argument(help="Generated worksheet (.yaml)")],
+    reference: Annotated[Path, typer.Argument(help="Hand-built reference worksheet (.yaml)")],
+    fail_under: Annotated[
+        float | None,
+        typer.Option("--fail-under", help="Exit 1 if coverage (in %) falls below this"),
+    ] = None,
+) -> None:
+    """Score a generated worksheet against a hand-built reference."""
+    from .evals.jd import compare
+    from .jd import JDParseError, load_worksheet_template
+
+    try:
+        gen = load_worksheet_template(generated)
+        ref = load_worksheet_template(reference)
+    except JDParseError as exc:
+        _fail(str(exc))
+        return
+
+    report = compare(gen, ref)
+    typer.echo(str(report))
+    if fail_under is not None and report.coverage * 100 < fail_under:
+        raise typer.Exit(code=1)
 
 
 # ── Evals ───────────────────────────────────────────────────────────────────

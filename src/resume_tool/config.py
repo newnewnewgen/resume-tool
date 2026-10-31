@@ -11,11 +11,15 @@ from dataclasses import dataclass
 from pathlib import Path
 
 DEFAULT_DB_PATH = Path.home() / ".resume-tool" / "bank.db"
+DEFAULT_MODEL = "claude-opus-5-5"
+DEFAULT_MAX_TOKENS = 16000
 
 
 @dataclass(frozen=True)
 class Config:
     db_path: Path
+    model: str = DEFAULT_MODEL
+    max_tokens: int = DEFAULT_MAX_TOKENS
 
     @classmethod
     def load(cls, db_path: Path | str | None = None) -> "Config":
@@ -26,4 +30,8 @@ class Config:
             resolved = Path(env)
         else:
             resolved = DEFAULT_DB_PATH
-        return cls(db_path=resolved.expanduser())
+        return cls(
+            db_path=resolved.expanduser(),
+            model=os.environ.get("RESUME_TOOL_MODEL", DEFAULT_MODEL),
+            max_tokens=int(os.environ.get("RESUME_TOOL_MAX_TOKENS", DEFAULT_MAX_TOKENS)),
+        )

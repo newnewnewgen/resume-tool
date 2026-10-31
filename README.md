@@ -16,7 +16,7 @@ and the eval harness with its golden set. No LLM dependency yet; nothing here ne
 | 1 | Schema + SQLite + ingest resume → Experiences | ✅ done |
 | 2 | Eval harness + golden set | ✅ done |
 | 3 | ATS round-trip test + docx writer | ✅ done |
-| 4 | JD → tiered requirements | |
+| 4 | JD → tiered requirements | ✅ built — acceptance eval vs the hand-made worksheets runs with an API key |
 | 5 | Retrieval + gap detection | |
 | 6 | Telling generation + reuse + truth check | |
 | 7 | Assembly | |
@@ -75,6 +75,19 @@ resume load-worksheet worksheets/myjob.filled.yaml
 Writes the worksheet's jobs, experiences and facts into the bank. Idempotent —
 re-run after editing and only new entries land.
 
+### Parsing a job description (step 4 — needs Anthropic credentials)
+
+```bash
+resume parse-jd jd.txt                 # → worksheets/<company>.yaml, screenable bar applied
+resume parse-jd jd.pdf --store         # also store application + requirements in the bank
+resume eval-jd worksheets/figma.yaml worksheets/figma-apm-2027.yaml   # score vs a hand-built reference
+```
+
+The model and token budget come from `$RESUME_TOOL_MODEL` / `$RESUME_TOOL_MAX_TOKENS`
+(defaults in `config.py`), never from code. The two committed templates are the
+acceptance references: run the same JD through `parse-jd` and `eval-jd` scores
+requirement coverage, tiering agreement, and knockout extraction against them.
+
 ### Scoring retrieval against the golden set
 
 ```bash
@@ -119,4 +132,6 @@ The bank is personal data and is gitignored.
 .venv/bin/python -m pytest
 ```
 
-132 tests, no network, no API key.
+158 tests, no network, no API key — the LLM seam is a plain callable, so
+everything after the model (validation, rendering, storage, the acceptance
+comparator, the v1→v2 schema migration) is tested with canned output.

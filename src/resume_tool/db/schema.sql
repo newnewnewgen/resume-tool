@@ -81,7 +81,9 @@ CREATE TABLE requirement (
     application_id INTEGER NOT NULL REFERENCES application(id) ON DELETE CASCADE,
     text           TEXT NOT NULL,
     tier           TEXT NOT NULL CHECK (tier IN ('critical','important','nice_to_have')),
-    kind           TEXT NOT NULL CHECK (kind IN ('knockout','skill','quality')),
+    kind           TEXT NOT NULL CHECK (kind IN ('knockout','skill','quality','domain')),
+    evidence       TEXT,                -- the JD's own words this requirement came from
+    note           TEXT,                -- guidance for answering it
     position       INTEGER NOT NULL DEFAULT 0
 );
 

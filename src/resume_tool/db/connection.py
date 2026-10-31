@@ -5,8 +5,40 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 _SCHEMA_FILE = Path(__file__).parent / "schema.sql"
+
+
+def _migrate_v2(conn: sqlite3.Connection) -> None:
+    """requirement gains the 'domain' kind plus evidence/note columns.
+
+    SQLite cannot alter a CHECK, so the table is rebuilt. Renaming the old
+    table away would rewrite child FK clauses to point at the new name, so
+    instead: build requirement_new, drop requirement, rename new into place —
+    with FK enforcement off for the duration.
+    """
+    conn.execute("PRAGMA foreign_keys = OFF")
+    conn.executescript("""
+        CREATE TABLE requirement_new (
+            id             INTEGER PRIMARY KEY,
+            application_id INTEGER NOT NULL REFERENCES application(id) ON DELETE CASCADE,
+            text           TEXT NOT NULL,
+            tier           TEXT NOT NULL CHECK (tier IN ('critical','important','nice_to_have')),
+            kind           TEXT NOT NULL CHECK (kind IN ('knockout','skill','quality','domain')),
+            evidence       TEXT,
+            note           TEXT,
+            position       INTEGER NOT NULL DEFAULT 0
+        );
+        INSERT INTO requirement_new (id, application_id, text, tier, kind, position)
+            SELECT id, application_id, text, tier, kind, position FROM requirement;
+        DROP TABLE requirement;
+        ALTER TABLE requirement_new RENAME TO requirement;
+        CREATE INDEX idx_requirement_app ON requirement(application_id);
+    """)
+    conn.execute("PRAGMA foreign_keys = ON")
+
+
+_MIGRATIONS = {2: _migrate_v2}
 
 
 def connect(db_path: Path | str) -> sqlite3.Connection:
@@ -26,12 +58,19 @@ def connect(db_path: Path | str) -> sqlite3.Connection:
 
 
 def initialize(conn: sqlite3.Connection) -> None:
-    """Create the schema. No-op if it already exists."""
-    if _schema_present(conn):
+    """Create the schema, or migrate an older one forward."""
+    if not _schema_present(conn):
+        conn.executescript(_SCHEMA_FILE.read_text())
+        conn.execute("INSERT INTO schema_version (version) VALUES (?)", (SCHEMA_VERSION,))
+        conn.commit()
         return
-    conn.executescript(_SCHEMA_FILE.read_text())
-    conn.execute("INSERT INTO schema_version (version) VALUES (?)", (SCHEMA_VERSION,))
-    conn.commit()
+
+    version = schema_version(conn) or 0
+    while version < SCHEMA_VERSION:
+        version += 1
+        _MIGRATIONS[version](conn)
+        conn.execute("INSERT INTO schema_version (version) VALUES (?)", (version,))
+        conn.commit()
 
 
 def schema_version(conn: sqlite3.Connection) -> int | None:

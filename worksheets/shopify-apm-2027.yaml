@@ -1,0 +1,182 @@
+# Shopify — Apprentice Product Manager (APM), 2027 cohort
+# Canada or United States (digital-first) · paid 12 months · two team placements
+#
+# BUILT FROM the Sept-2026 cohort posting; the 2027 posting drops Nov 2, 2026.
+# When it does: update K2/K4 dates from the real text, and diff the
+# qualifications — everything else below is expected to carry over.
+#
+# NOTE: Shopify says applications may be AI-screened ("We may use AI-enabled
+# tools to screen, select, and assess applications"). Every requirement here
+# is phrased as something a screener — human or model — can verify from a
+# bullet or a link. Live links matter more than usual.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# HOW TO USE THIS
+#
+# Copy this file to a gitignored name first — this repo is public:
+#     cp shopify-apm-2027.yaml shopify.filled.yaml
+#
+# Under each `your_experience:`, write ONE concrete thing you actually did.
+#   - Facts, not framing. What happened, the numbers, the tools, who was involved.
+#   - Every metric needs its period, denominator and baseline — it will be
+#     challenged later if it doesn't have them now.
+#   - LEAVE IT BLANK if you have no real story. Blanks are the most useful output
+#     here — they are the gaps, and a blank critical gap is worth more of your
+#     attention than a filled nice-to-have.
+#
+# Tiers:  critical = screened for, gap likely costs you the role
+#         important = strongly implied, gaps are survivable but visible
+#         nice_to_have = differentiator only
+# ─────────────────────────────────────────────────────────────────────────────
+
+application:
+  company: "Shopify"
+  role_title: "Apprentice Product Manager (APM) — 2027 cohort"
+  location: "Canada or United States (digital-first)"
+
+# ── KNOCKOUTS — binary. Check these before writing anything else. ────────────
+knockouts:
+  - id: K1
+    requirement: "Legally authorized to work full time (40 hrs/week) in Canada or the US, with no visa or immigration sponsorship needed"
+    evidence: "You must have legal authorization to work full time ... Shopify will not provide visa or immigration support."
+    status:          # yes / no
+
+  - id: K2
+    requirement: "Available to start on the 2027 cohort start date, no deferral [prior cohort: September 8 — take the real date from tomorrow's posting]"
+    evidence: "All selected candidates MUST be available to start on this date. No exceptions will be granted"
+    status:          # yes / no — pending the 2027 posting
+
+  - id: K3
+    requirement: "Able to work at least 40 hours per week for the full 12 months (not part time, not an internship, not alongside full-time study)"
+    evidence: "Able to work a minimum of 40 hours per week ... This is not an internship, nor a part time opportunity"
+    status:          # yes / no
+
+  - id: K4
+    requirement: "Application submitted before the 2027 deadline [prior cohort closed May 11, 11:59 PM Eastern — take the real date from tomorrow's posting]"
+    evidence: "This application will close ... at 11:59 PM Eastern"
+    status:          # yes / no — pending the 2027 posting
+
+# ── REQUIREMENTS ────────────────────────────────────────────────────────────
+requirements:
+
+  # ─── CRITICAL ─────────────────────────────────────────────────────────────
+
+  - id: R1
+    tier: critical
+    kind: skill
+    requirement: "Created something that didn't exist before and saw it through to real use: you started it, you shipped it, people used it"
+    evidence: "A history of creating something that didn't exist before and seeing it through."
+    note: "'History' means more than one instance beats one. Each needs a scale marker (users, revenue, hours saved, duration) and the through-line: idea → shipped → used."
+    your_experience: ""
+
+  - id: R2
+    tier: critical
+    kind: quality
+    requirement: "Self-directed a project with no playbook: a concrete instance where nobody defined the plan and you figured out what needed to happen and made it happen"
+    evidence: "Comfort operating without a playbook. Figuring out what needs to happen and making it happen. ... If you prefer detailed direction and a clear roadmap to follow, this role probably isn't for you"
+    note: "Make the absence of direction explicit in the bullet: 'no owner / no spec / role still taking shape', then what you scoped and shipped."
+    your_experience: ""
+
+  - id: R3
+    tier: critical
+    kind: quality
+    requirement: "Did more with less: a concrete instance of stretching limited time, budget, headcount or experience further than expected, with the constraint and the result both stated"
+    evidence: "A track record of doing more with less, stretching limited time, resources, or experience further than expected."
+    note: "New emphasis this cohort. The constraint is half the bullet: 'solo', 'zero budget', 'in 6 weeks', 'while working 25 hrs/week' — then the outsized result."
+    your_experience: ""
+
+  - id: R4
+    tier: critical
+    kind: skill
+    requirement: "Made real things with AI — a tool, automation, prototype or workflow that did real work, shown through a link or repo, with the models/tools named"
+    evidence: "Hands-on experience making things with AI. We're looking for people who've used AI to do real work, not people who've listed it on a resume. ... Use AI daily for prototyping, research, analysis, and building"
+    note: "The hardest-screened line in the posting. Name the tools (Claude Code, etc.), what the build replaced or sped up, and have it demoable — expect to be asked to show your workflow."
+    your_experience: ""
+
+  - id: R5
+    tier: critical
+    kind: skill
+    requirement: "Built for a real audience you demonstrably care about — merchants, buyers or a community — and engaged with them directly along the way"
+    evidence: "Genuine interest in the audience affected by what you build: merchants, buyers, or communities."
+    note: "'Genuine interest' is screened as contact: who you talked to, what you learned, what changed. Building FOR merchants beats opinions ABOUT merchants."
+    your_experience: ""
+
+  - id: R6
+    tier: critical
+    kind: quality
+    requirement: "Picked up a new skill, domain or responsibility quickly: a concrete instance with a timeframe and the thing you produced with it"
+    evidence: "A pattern of picking up new skills, domains, or responsibilities quickly."
+    note: "'Taught myself X in N weeks → shipped Y.' Courses alone are weak evidence; the artifact is the proof. 'Pattern' = two instances beat one."
+    your_experience: ""
+
+  # ─── IMPORTANT ────────────────────────────────────────────────────────────
+
+  - id: R7
+    tier: important
+    kind: skill
+    requirement: "A measurable outcome you personally owned and moved, with baseline, period and denominator"
+    evidence: "achieve impactful results for our merchants within 12 months ... Own real product problems for real merchants"
+    your_experience: ""
+
+  - id: R8
+    tier: important
+    kind: quality
+    requirement: "Shipped at a weekly-or-faster cadence: a concrete instance with the cycle length and the count"
+    evidence: "Keep up with an unrelenting pace (the week, not the quarter)"
+    note: "Give the cadence and the count, e.g. '14 releases in 10 weeks'."
+    your_experience: ""
+
+  - id: R9
+    tier: important
+    kind: quality
+    requirement: "Took a dissenting, reasoned position on a team and it changed the outcome"
+    evidence: "Bring critical thought and opinion ... Embrace differences and disagreement to get shit done and move forward"
+    your_experience: ""
+
+  - id: R10
+    tier: important
+    kind: skill
+    requirement: "Delivered work in a remote or asynchronous team, with written docs and digital tools as the primary collaboration surface"
+    evidence: "Work digital-first for your daily work"
+    your_experience: ""
+
+  # ─── NICE TO HAVE ─────────────────────────────────────────────────────────
+
+  - id: R11
+    tier: nice_to_have
+    kind: domain
+    requirement: "Commerce or entrepreneurship: ran a business or store, or built product for merchants or small businesses"
+    evidence: "Shopify puts independence within reach for anyone with a dream to start a business ... generated over $1 trillion in sales for millions of merchants"
+    note: "Direct merchant-facing product work is a strong differentiator here."
+    your_experience: ""
+
+  - id: R12
+    tier: nice_to_have
+    kind: skill
+    requirement: "Built and deployed something technically non-trivial yourself, shown through a repo or live link"
+    evidence: "Use AI daily for prototyping, research, analysis, and building"
+    your_experience: ""
+
+# ── SIGNALS — not requirements ───────────────────────────────────────────────
+# Real parts of the evaluation that no resume bullet can carry. Nothing here
+# gets matched against experiences; prep happens elsewhere.
+signals:
+  - id: S1
+    signal: "Comfort with being uncomfortable — ambiguity, pace and change, judged in conversation"
+    prep: "One story where the plan fell apart and you re-scoped on the fly. Energy about it, not endurance of it."
+
+  - id: S2
+    signal: "AI conviction with a point of view on agents vs. humans"
+    prep: "The posting says 'put AI agents and tools to work on the tasks they're built for, and focus on the work only humans can do' — have an opinion, formed by building, on where that line sits for product work. Be ready to demo your actual workflow."
+
+  - id: S3
+    signal: "Product sense and critical opinion about Shopify itself"
+    prep: "Open a test store. Prepare two specific, reasoned critiques or feature ideas for merchant-facing surfaces."
+
+  - id: S4
+    signal: "Why commerce, why merchants, why now"
+    prep: "A crisp answer tied to real contact with business owners — restaurant owners count."
+
+  - id: S5
+    signal: "AI-assisted screening of the application itself"
+    prep: "The resume will likely be read by a model before a human: keep claims literal and verifiable, keywords legible, every link live. This worksheet's screenable bar is tuned for exactly that reader."

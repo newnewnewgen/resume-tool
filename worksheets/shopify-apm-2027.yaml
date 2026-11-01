@@ -118,31 +118,9 @@ requirements:
     evidence: "achieve impactful results for our merchants within 12 months ... Own real product problems for real merchants"
     your_experience: ""
 
-  - id: R8
-    tier: important
-    kind: quality
-    requirement: "Shipped at a weekly-or-faster cadence: a concrete instance with the cycle length and the count"
-    evidence: "Keep up with an unrelenting pace (the week, not the quarter)"
-    note: "Give the cadence and the count, e.g. '14 releases in 10 weeks'."
-    your_experience: ""
-
-  - id: R9
-    tier: important
-    kind: quality
-    requirement: "Took a dissenting, reasoned position on a team and it changed the outcome"
-    evidence: "Bring critical thought and opinion ... Embrace differences and disagreement to get shit done and move forward"
-    your_experience: ""
-
-  - id: R10
-    tier: important
-    kind: skill
-    requirement: "Delivered work in a remote or asynchronous team, with written docs and digital tools as the primary collaboration surface"
-    evidence: "Work digital-first for your daily work"
-    your_experience: ""
-
   # ─── NICE TO HAVE ─────────────────────────────────────────────────────────
 
-  - id: R11
+  - id: R8
     tier: nice_to_have
     kind: domain
     requirement: "Commerce or entrepreneurship: ran a business or store, or built product for merchants or small businesses"
@@ -150,7 +128,7 @@ requirements:
     note: "Direct merchant-facing product work is a strong differentiator here."
     your_experience: ""
 
-  - id: R12
+  - id: R9
     tier: nice_to_have
     kind: skill
     requirement: "Built and deployed something technically non-trivial yourself, shown through a repo or live link"
@@ -180,3 +158,15 @@ signals:
   - id: S5
     signal: "AI-assisted screening of the application itself"
     prep: "The resume will likely be read by a model before a human: keep claims literal and verifiable, keywords legible, every link live. This worksheet's screenable bar is tuned for exactly that reader."
+
+  - id: S6
+    signal: "Pace — 'the week, not the quarter'"
+    prep: "Interview material: have the cadence count ready ('N releases in M weeks') from your fastest real project. A resume line claiming speed reads as assertion; a counted answer in the room reads as fact."
+
+  - id: S7
+    signal: "Critical thought and productive disagreement"
+    prep: "Interview material: one instance where you took a reasoned dissenting position and the outcome changed. Needs its context told aloud — compressed to a bullet it reads vague or insubordinate."
+
+  - id: S8
+    signal: "Digital-first, async work style"
+    prep: "Shows up incidentally (remote roles, written-doc artifacts), not as a claim. In interviews, reference the docs you write rather than asserting you write docs."

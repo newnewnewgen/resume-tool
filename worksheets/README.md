@@ -42,6 +42,9 @@ So soft JD language gets translated into its observable proxy:
 | "a knack for visual design" | a reachable portfolio artifact |
 | "a love for designers/customers" | worked directly with users on a product decision |
 | "deeply technical" | built something technically non-trivial yourself |
+| "unrelenting pace" / cadence culture lines | a signal — a resume can't prove a rhythm; have the count ready for interviews |
+| "bring opinions / embrace disagreement" | a signal — dissent needs its context told aloud; a bullet reads vague or insubordinate |
+| "digital-first / async work style" | a signal — shows up incidentally through remote roles and written artifacts, never as a claim |
 
 What can't be translated — essay fields, interview demeanor, writing quality —
 goes in a `signals:` section at the bottom of the worksheet, outside the

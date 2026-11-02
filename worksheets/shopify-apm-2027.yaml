@@ -42,9 +42,9 @@ knockouts:
     status:          # yes / no
 
   - id: K2
-    requirement: "Available to start on the 2027 cohort start date, no deferral [prior cohort: September 8 — take the real date from tomorrow's posting]"
-    evidence: "All selected candidates MUST be available to start on this date. No exceptions will be granted"
-    status:          # yes / no — pending the 2027 posting
+    requirement: "Available to start March 8, 2027, no change or delay, and not enrolled in any academic program during the 12 months"
+    evidence: "Program start date: March 8, 2027. You cannot change or delay your agreed start date. ... You may not be enrolled in an academic program while participating"
+    status:          # yes / no
 
   - id: K3
     requirement: "Able to work at least 40 hours per week for the full 12 months (not part time, not an internship, not alongside full-time study)"
@@ -52,9 +52,9 @@ knockouts:
     status:          # yes / no
 
   - id: K4
-    requirement: "Application submitted before the 2027 deadline [prior cohort closed May 11, 11:59 PM Eastern — take the real date from tomorrow's posting]"
-    evidence: "This application will close ... at 11:59 PM Eastern"
-    status:          # yes / no — pending the 2027 posting
+    requirement: "Application submitted before November 9, 2026, 11:59 PM EST"
+    evidence: "This application will close November 9, 2026 at 11:59 PM EST"
+    status:          # yes / no
 
 # ── REQUIREMENTS ────────────────────────────────────────────────────────────
 requirements:
@@ -170,3 +170,19 @@ signals:
   - id: S8
     signal: "Digital-first, async work style"
     prep: "Shows up incidentally (remote roles, written-doc artifacts), not as a claim. In interviews, reference the docs you write rather than asserting you write docs."
+
+  - id: S9
+    signal: "Life Story stage — 'trophies and the bruises'"
+    prep: "The adversity narrative is back as a formal stage: problems solved, decisions made, lessons learned, told human to human. Draft it before the pipeline starts; the resume can't carry it."
+
+  - id: S10
+    signal: "Application essays (4 questions, read by humans, AI-refined-not-AI-written)"
+    prep: "Q1 built/shipped + the evidence the problem mattered, with ONE link. Q2 which part of Shopify's business and why. Q3 how you use AI and how it evolved. Q4 anything else. Specific and in your own voice — they warn against fully generated answers."
+
+  - id: S11
+    signal: "'Formal PM experience' form question with an anti-inflation warning"
+    prep: "Answer '< 2 years' — internships, rotational programs and founder roles explicitly do not count, and the form says inflating is not an advantage. This is a trap for exactly the title-upgrade instinct."
+
+  - id: S12
+    signal: "LinkedIn is a required field and screening may be AI-assisted"
+    prep: "Resume, LinkedIn and any public profile must agree on titles, dates and numbers before submitting — cross-checking is now guaranteed, not hypothetical."

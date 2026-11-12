@@ -101,3 +101,62 @@ def test_report_renders_with_gaps(bank):
 def test_thresholds_are_ordered():
     assert 0 < STRETCH_AT < APPLY_AT < 1
     assert FitReport(parsed=jd(), bank_experiences=1).weighted_score == 0.0
+
+
+# ── the LLM match pass ──────────────────────────────────────────────────────
+
+import json  # noqa: E402
+
+
+def test_llm_pass_upgrades_abstract_requirements(bank):
+    # Keyword alone can't clear the bar on this phrasing; the LLM pass can,
+    # because the experience does share real tokens (prototyping/Figma).
+    abstract = jd(req("R1", Tier.CRITICAL,
+                      "Shipped a creative tool capability end to end",
+                      evidence="'prototyping with Figma'"))
+
+    def matcher(system, prompt):
+        assert "EXPERIENCE BANK" in prompt and "R1" in prompt
+        return json.dumps([{"id": "R1", "experience": "EXP-001", "strength": "weak"}])
+
+    report = score_fit(bank, abstract, complete_fn=matcher)
+    fit = report.fits[0]
+    assert fit.llm_strength == "weak"
+    assert fit.covered
+    assert fit.best_experience_id == 1
+
+
+def test_llm_cannot_force_a_zero_evidence_match(bank):
+    hostile = jd(req("R1", Tier.CRITICAL,
+                     "Underwater welding certification renewals",
+                     evidence="'subsea pipeline repair'"))
+
+    def liar(system, prompt):
+        return json.dumps([{"id": "R1", "experience": "EXP-001", "strength": "strong"}])
+
+    report = score_fit(bank, hostile, complete_fn=liar)
+    fit = report.fits[0]
+    assert fit.llm_strength == "gap"
+    assert fit.llm_overruled
+    assert not fit.covered
+
+
+def test_llm_gap_answer_is_respected(bank):
+    report = score_fit(
+        bank,
+        jd(req("R1", Tier.CRITICAL, "Figma design systems")),
+        complete_fn=lambda s, p: json.dumps(
+            [{"id": "R1", "experience": None, "strength": "gap"}]),
+    )
+    assert report.fits[0].llm_strength == "gap"
+    assert not report.fits[0].covered  # the model's gap call wins over keyword
+
+
+def test_llm_garbage_output_leaves_keyword_results(bank):
+    report = score_fit(
+        bank,
+        jd(req("R1", Tier.CRITICAL, "Figma design systems")),
+        complete_fn=lambda s, p: "I think the candidate is great!",
+    )
+    assert report.fits[0].llm_strength is None
+    assert report.fits[0].covered  # keyword result stands

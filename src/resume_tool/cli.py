@@ -375,6 +375,71 @@ def parse_jd_cmd(
         typer.secho(f"Stored as application {application_id}", fg=typer.colors.GREEN)
 
 
+@app.command("init-profile")
+def init_profile_cmd(
+    path: Annotated[Path | None, typer.Option("--path", help="Where to write the profile (default ~/.resume-tool/profile.yaml)")] = None,
+) -> None:
+    """Write the profile template (contact, education, skills) for assembly."""
+    from .profile import ProfileError, profile_path, write_template
+
+    try:
+        written = write_template(profile_path(path))
+    except ProfileError as exc:
+        _fail(str(exc))
+        return
+    typer.secho(f"Profile template written to {written} — fill it in.", fg=typer.colors.GREEN)
+
+
+@app.command("apply")
+def apply_cmd(
+    source: Annotated[Path, typer.Argument(help="A JD file (.txt/.md/.pdf/.docx) or a worksheet (.yaml)")],
+    out: Annotated[Path, typer.Option("--out", "-o", help="Directory for the draft resume")] = Path("output"),
+    profile: Annotated[Path | None, typer.Option("--profile", help="Profile path (default ~/.resume-tool/profile.yaml)")] = None,
+    no_tellings: Annotated[bool, typer.Option("--no-tellings", help="Skip LLM bullet generation; use raw summaries")] = False,
+    db: DbOption = None,
+) -> None:
+    """The unified run: parse → score → match → tellings → draft resume + gates.
+
+    Knockouts and gaps are printed for you to resolve — never auto-filled.
+    A .yaml worksheet source makes the parse free; --no-tellings makes the
+    whole run free.
+    """
+    from .apply import format_result, run_apply
+    from .jd import JDParseError, load_worksheet_template, parse_jd
+    from .llm import LLMError, complete
+    from .profile import ProfileError, load_profile
+
+    try:
+        if source.suffix.lower() in {".yaml", ".yml"}:
+            parsed = load_worksheet_template(source)
+            jd_text = source.read_text(encoding="utf-8")
+        else:
+            jd_text = extract_text(source)
+            parsed = parse_jd(jd_text)
+    except (FileNotFoundError, UnsupportedFormat, JDParseError, LLMError) as exc:
+        _fail(str(exc))
+        return
+
+    loaded_profile = None
+    try:
+        loaded_profile = load_profile(profile)
+    except ProfileError as exc:
+        typer.secho(f"No draft resume will be written: {exc}", fg=typer.colors.YELLOW)
+
+    conn = _open(db)
+    try:
+        result = run_apply(
+            conn, parsed, jd_text, loaded_profile, out,
+            complete_fn=None if no_tellings else complete,
+        )
+    except LLMError as exc:
+        _fail(str(exc))
+        return
+    finally:
+        conn.close()
+    typer.echo(format_result(result))
+
+
 @app.command("intake")
 def intake_cmd(
     data_root: Annotated[Path, typer.Argument(help="Your career-ops data directory (holds data/applications.md and reports/)")],

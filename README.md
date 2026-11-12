@@ -17,9 +17,9 @@ and the eval harness with its golden set. No LLM dependency yet; nothing here ne
 | 2 | Eval harness + golden set | ✅ done |
 | 3 | ATS round-trip test + docx writer | ✅ done |
 | 4 | JD → tiered requirements | ✅ done — first live acceptance run vs the hand-built Figma worksheet: 80% coverage, 6/6 critical, 92% tier agreement |
-| 5 | Retrieval + gap detection | |
-| 6 | Telling generation + reuse + truth check | |
-| 7 | Assembly | |
+| 5 | Retrieval + gap detection | ✅ built — keyword ranking + LLM match pass with a zero-evidence guard; matches persist in `requirement_match` |
+| 6 | Telling generation + reuse + truth check | ✅ built — truth check rejects any number not in the facts; fabrication falls back to the raw summary |
+| 7 | Assembly | ✅ built — `resume apply` drafts the .docx through the writer + gates; contact/education from `~/.resume-tool/profile.yaml` |
 | 8 | CLI polish | |
 
 No UI until 1–7 pass.
@@ -87,6 +87,18 @@ The model and token budget come from `$RESUME_TOOL_MODEL` / `$RESUME_TOOL_MAX_TO
 (defaults in `config.py`), never from code. The two committed templates are the
 acceptance references: run the same JD through `parse-jd` and `eval-jd` scores
 requirement coverage, tiering agreement, and knockout extraction against them.
+
+### The unified run
+
+```bash
+resume init-profile                      # once: contact/education/skills for assembly
+resume apply jd.txt                      # parse → score → match → tellings → draft.docx + gates
+resume apply worksheets/x.yaml --no-tellings   # the whole run with zero LLM calls
+```
+
+Knockouts and gaps are printed for you, never auto-resolved; matches persist
+in `requirement_match`; every telling passes the truth check or ships as the
+raw summary instead.
 
 ### Intake: qualify jobs from career-ops (Phase −1)
 

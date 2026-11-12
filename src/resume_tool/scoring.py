@@ -1,23 +1,31 @@
 """Fit scoring: how well does the bank cover a parsed JD?
 
-The intake qualifier. Where career-ops scores a job against a CV with a
-generic LLM rubric, this scores it against the fact bank deterministically:
-every requirement is retrieved against the user's own experiences, and the
-score is coverage — weighted toward the critical tier, with the gaps named.
-The same mechanics are step 5's first half; intake is just step 5 run before
-the user has committed to applying.
+The intake qualifier and step 5's matcher. Two layers:
 
-Zero LLM calls: scoring a parsed worksheet is free and instant, so a scan's
-worth of postings can be ranked without spending anything.
+- Keyword retrieval (free, deterministic): ranks experiences per requirement.
+  Good at ranking, weak at clearing the gap bar when requirements are
+  abstract ("shipped a user-facing launch you can name") and summaries are
+  concrete — measured on the first unified run.
+- LLM matching (one call per application, optional): classifies each
+  requirement strong / weak / gap against the numbered experience list.
+  Guarded mechanically: the model may never upgrade a requirement the
+  keyword layer found zero shared tokens for — a forced match is the one
+  failure this tool exists to prevent, so the guard is code, not prompt.
+
+Scoring a parsed worksheet without the LLM stays free and instant, so a
+scan's worth of postings can be ranked without spending anything.
 """
 
 from __future__ import annotations
 
+import json
+import re
 import sqlite3
 from dataclasses import dataclass, field
 
 from . import retrieval, store
 from .jd import ParsedJD, Requirement
+from .llm import CompleteFn
 from .models import Tier
 
 # Tier weights: a critical gap should cost roughly three times an important
@@ -39,9 +47,13 @@ class RequirementFit:
     requirement: Requirement
     best_experience_id: int | None
     best_score: float
+    llm_strength: str | None = None     # strong | weak | gap, when the LLM pass ran
+    llm_overruled: bool = False         # the zero-evidence guard fired
 
     @property
     def covered(self) -> bool:
+        if self.llm_strength is not None:
+            return self.llm_strength in ("strong", "weak") and self.best_experience_id is not None
         return self.best_experience_id is not None and self.best_score >= COVER_THRESHOLD
 
 
@@ -110,10 +122,17 @@ class FitReport:
         return "\n".join(lines)
 
 
-def score_fit(conn: sqlite3.Connection, parsed: ParsedJD, k: int = 3) -> FitReport:
+def score_fit(
+    conn: sqlite3.Connection,
+    parsed: ParsedJD,
+    k: int = 3,
+    complete_fn: CompleteFn | None = None,
+) -> FitReport:
     """Score a parsed JD against the bank. Knockouts are excluded: they are
-    the user's yes/no, not the bank's."""
-    report = FitReport(parsed=parsed, bank_experiences=len(store.list_experiences(conn)))
+    the user's yes/no, not the bank's. With complete_fn, the LLM match pass
+    runs on top of keyword ranking (one call for the whole application)."""
+    experiences = store.list_experiences(conn)
+    report = FitReport(parsed=parsed, bank_experiences=len(experiences))
     for requirement in parsed.requirements:
         candidates = retrieval.retrieve(conn, _query_text(requirement), k)
         best = candidates[0] if candidates else None
@@ -122,7 +141,79 @@ def score_fit(conn: sqlite3.Connection, parsed: ParsedJD, k: int = 3) -> FitRepo
             best_experience_id=best.experience_id if best else None,
             best_score=best.score if best else 0.0,
         ))
+
+    if complete_fn is not None and experiences:
+        _llm_match(report, experiences, complete_fn, conn)
     return report
+
+
+MATCH_SYSTEM = """You match job requirements to a candidate's experience \
+bank. For each requirement, name the ONE experience that best demonstrates \
+it, with a strength:
+- "strong": the experience clearly demonstrates the requirement.
+- "weak": partial or adjacent evidence — defensible but needs framing.
+- "gap": NO experience genuinely demonstrates it. Gaps are a correct and \
+expected answer; a missing capability must be reported, never papered over \
+with the least-bad experience. When in doubt between weak and gap, answer gap.
+Judge only from the experience text given. Output JSON only — no prose:
+[{"id": "R1", "experience": "EXP-003" | null, "strength": "strong|weak|gap"}]"""
+
+
+def _llm_match(report: FitReport, experiences, complete_fn: CompleteFn, conn) -> None:
+    lines = []
+    for e in experiences:
+        facts = "; ".join(f.value for f in e.facts)
+        lines.append(f"{e.display_id}: {e.summary}" + (f" [{facts}]" if facts else ""))
+    requirement_lines = [
+        f"{f.requirement.id} [{f.requirement.tier.value}]: {f.requirement.requirement} "
+        f"(JD evidence: {f.requirement.evidence})"
+        for f in report.fits
+    ]
+    raw = complete_fn(
+        MATCH_SYSTEM,
+        "EXPERIENCE BANK:\n" + "\n".join(lines)
+        + "\n\nREQUIREMENTS:\n" + "\n".join(requirement_lines)
+        + "\n\nReturn the JSON array.",
+    )
+    try:
+        data = json.loads(re.sub(r"^```[a-z]*\n|\n```$", "", raw.strip(), flags=re.MULTILINE))
+    except json.JSONDecodeError:
+        return  # keyword results stand; the pass is an upgrade, not a dependency
+    if not isinstance(data, list):
+        return
+
+    by_id = {str(item.get("id")): item for item in data if isinstance(item, dict)}
+    valid_ids = {e.id for e in experiences}
+    for fit in report.fits:
+        item = by_id.get(fit.requirement.id)
+        if not item:
+            continue
+        strength = str(item.get("strength") or "").strip().lower()
+        if strength not in ("strong", "weak", "gap"):
+            continue
+        exp_ref = str(item.get("experience") or "")
+        match = re.search(r"(\d+)", exp_ref)
+        exp_id = int(match.group(1)) if match else None
+        if strength == "gap" or exp_id not in valid_ids:
+            fit.llm_strength = "gap"
+            continue
+        # The zero-evidence guard: an experience sharing no tokens at all
+        # with the requirement cannot be claimed as coverage, whatever the
+        # model says. Forced matches stay impossible by construction.
+        keyword_score = _pair_score(conn, fit.requirement, exp_id)
+        if keyword_score <= 0.0:
+            fit.llm_strength = "gap"
+            fit.llm_overruled = True
+            continue
+        fit.llm_strength = strength
+        fit.best_experience_id = exp_id
+        fit.best_score = max(fit.best_score, keyword_score)
+
+
+def _pair_score(conn, requirement: Requirement, experience_id: int) -> float:
+    experience = store.get_experience(conn, experience_id)
+    return retrieval.score_experience(
+        retrieval.tokenize(_query_text(requirement)), experience)
 
 
 def _query_text(requirement: Requirement) -> str:

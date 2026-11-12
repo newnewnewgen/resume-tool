@@ -39,6 +39,10 @@ def _stem(token: str) -> str:
         token = token[:-3]
     elif token.endswith("ed") and len(token) > 4:
         token = token[:-2]
+    # 'shipped' -> 'shipp', 'running' -> 'runn': collapse the doubled final
+    # consonant so the stem meets its base form ('ship', 'run').
+    if len(token) > 3 and token[-1] == token[-2] and token[-1] not in "aeiouls":
+        token = token[:-1]
     if token.endswith("s") and not token.endswith("ss") and len(token) > 3:
         token = token[:-1]
     return token
@@ -62,11 +66,19 @@ class Candidate:
 
 
 def score_experience(requirement_tokens: set[str], experience: Experience) -> float:
-    """Fraction of the requirement's tokens found in the experience."""
+    """Overlap against the smaller side. Dividing by the requirement alone
+    punishes long, evidence-rich queries: a 25-token requirement needed five
+    hits to clear the gap threshold, so every single-topic experience read
+    as a gap. The min-denominator keeps short-vs-long comparisons fair; the
+    gap threshold still guards against one stray shared token."""
     if not requirement_tokens:
         return 0.0
     text = " ".join([experience.summary, *(f.value for f in experience.facts)])
-    return len(requirement_tokens & tokenize(text)) / len(requirement_tokens)
+    experience_tokens = tokenize(text)
+    if not experience_tokens:
+        return 0.0
+    overlap = len(requirement_tokens & experience_tokens)
+    return overlap / min(len(requirement_tokens), len(experience_tokens))
 
 
 def retrieve(

@@ -117,7 +117,8 @@ def test_llm_pass_upgrades_abstract_requirements(bank):
 
     def matcher(system, prompt):
         assert "EXPERIENCE BANK" in prompt and "R1" in prompt
-        return json.dumps([{"id": "R1", "experience": "EXP-001", "strength": "weak"}])
+        return json.dumps([{"id": "R1", "experience": "EXP-001", "strength": "weak",
+                            "quote": "AI prototyping and GTM asset generation"}])
 
     report = score_fit(bank, abstract, complete_fn=matcher)
     fit = report.fits[0]
@@ -126,19 +127,42 @@ def test_llm_pass_upgrades_abstract_requirements(bank):
     assert fit.best_experience_id == 1
 
 
-def test_llm_cannot_force_a_zero_evidence_match(bank):
+def test_llm_match_with_zero_token_overlap_is_fine_when_grounded(bank):
+    # The whole point of the semantic pass: no shared tokens, real evidence.
+    abstract = jd(req("R1", Tier.CRITICAL,
+                      "Created a reusable visual foundation for the brand",
+                      evidence="'owns the look and feel'"))
+    grounded = json.dumps([{"id": "R1", "experience": "EXP-001", "strength": "strong",
+                            "quote": "branded design system in Figma"}])
+    report = score_fit(bank, abstract, complete_fn=lambda s, p: grounded)
+    assert report.fits[0].covered
+    assert not report.fits[0].llm_overruled
+
+
+def test_llm_cannot_force_an_ungrounded_match(bank):
     hostile = jd(req("R1", Tier.CRITICAL,
                      "Underwater welding certification renewals",
                      evidence="'subsea pipeline repair'"))
 
     def liar(system, prompt):
-        return json.dumps([{"id": "R1", "experience": "EXP-001", "strength": "strong"}])
+        return json.dumps([{"id": "R1", "experience": "EXP-001", "strength": "strong",
+                            "quote": "certified subsea welder"}])  # not in the experience
 
     report = score_fit(bank, hostile, complete_fn=liar)
     fit = report.fits[0]
     assert fit.llm_strength == "gap"
     assert fit.llm_overruled
     assert not fit.covered
+
+
+def test_llm_match_without_a_quote_is_discarded(bank):
+    report = score_fit(
+        bank, jd(req("R1", Tier.CRITICAL, "Figma design systems")),
+        complete_fn=lambda s, p: json.dumps(
+            [{"id": "R1", "experience": "EXP-001", "strength": "strong"}]),
+    )
+    assert report.fits[0].llm_strength == "gap"
+    assert report.fits[0].llm_overruled
 
 
 def test_llm_gap_answer_is_respected(bank):

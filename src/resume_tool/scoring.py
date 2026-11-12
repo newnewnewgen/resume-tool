@@ -155,8 +155,13 @@ it, with a strength:
 - "gap": NO experience genuinely demonstrates it. Gaps are a correct and \
 expected answer; a missing capability must be reported, never papered over \
 with the least-bad experience. When in doubt between weak and gap, answer gap.
+For every strong or weak match, "quote" must be a short phrase copied \
+VERBATIM, character for character, from that experience's own text — the \
+evidence your judgment rests on. A match whose quote is not found verbatim \
+in the experience is discarded as a gap, so copy exactly, never paraphrase.
 Judge only from the experience text given. Output JSON only — no prose:
-[{"id": "R1", "experience": "EXP-003" | null, "strength": "strong|weak|gap"}]"""
+[{"id": "R1", "experience": "EXP-003" | null, "strength": "strong|weak|gap",
+  "quote": "verbatim phrase from that experience" | null}]"""
 
 
 def _llm_match(report: FitReport, experiences, complete_fn: CompleteFn, conn) -> None:
@@ -197,17 +202,31 @@ def _llm_match(report: FitReport, experiences, complete_fn: CompleteFn, conn) ->
         if strength == "gap" or exp_id not in valid_ids:
             fit.llm_strength = "gap"
             continue
-        # The zero-evidence guard: an experience sharing no tokens at all
-        # with the requirement cannot be claimed as coverage, whatever the
-        # model says. Forced matches stay impossible by construction.
-        keyword_score = _pair_score(conn, fit.requirement, exp_id)
-        if keyword_score <= 0.0:
+        # The grounding guard: a claimed match must carry a verbatim quote
+        # from the claimed experience. Semantic matches with zero token
+        # overlap are legitimate (that is the point of this pass), but an
+        # ungrounded claim is not — forced matches stay impossible by
+        # construction, not by prompt.
+        quote = str(item.get("quote") or "").strip()
+        if not quote or not _quote_in_experience(conn, exp_id, quote):
             fit.llm_strength = "gap"
             fit.llm_overruled = True
             continue
         fit.llm_strength = strength
         fit.best_experience_id = exp_id
-        fit.best_score = max(fit.best_score, keyword_score)
+        fit.best_score = max(
+            fit.best_score, _pair_score(conn, fit.requirement, exp_id))
+
+
+def _normalize(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
+
+
+def _quote_in_experience(conn, experience_id: int, quote: str) -> bool:
+    experience = store.get_experience(conn, experience_id)
+    haystack = _normalize(
+        " ".join([experience.summary, *(f.value for f in experience.facts)]))
+    return _normalize(quote) in haystack
 
 
 def _pair_score(conn, requirement: Requirement, experience_id: int) -> float:

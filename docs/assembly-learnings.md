@@ -114,3 +114,24 @@ layout is exhausted.
   real regressions, never shipped a broken file.
 - Privacy boundary held: all real career data stayed in gitignored files and
   the scratchpad; the repo got only synthetic equivalents and rules.
+
+## Addendum: the first unified run (Nov 2026, Shopify APM, simulated model)
+
+Run with subagents standing in behind the LLM seam. Two design flaws found
+and fixed in the same session:
+
+1. **The zero-token-overlap guard was too blunt.** It overruled correct
+   semantic matches (Treesumé → "created something that didn't exist")
+   because right answers can share no surface tokens with abstract
+   requirements — the exact case the LLM pass exists for. Replaced with the
+   grounding guard: a claimed match must carry a verbatim quote from the
+   claimed experience, verified in code. Forced matches stay impossible;
+   semantic matches stay possible.
+2. **Projects are experiences.** Treesumé was only in the profile's render
+   section, so the matcher couldn't see the true answer for zero-to-one
+   requirements. Doctrine: anything with facts belongs in the bank;
+   the profile holds only rendering constants.
+
+Before the fixes the run scored the author's own bank 37% / SKIP on a role
+it demonstrably fits; after, 100% / APPLY with every match quote-grounded
+and all generated bullets passing the truth check.

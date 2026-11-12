@@ -375,6 +375,92 @@ def parse_jd_cmd(
         typer.secho(f"Stored as application {application_id}", fg=typer.colors.GREEN)
 
 
+@app.command("intake")
+def intake_cmd(
+    data_root: Annotated[Path, typer.Argument(help="Your career-ops data directory (holds data/applications.md and reports/)")],
+    min_score: Annotated[float, typer.Option("--min-score", help="Only rows career-ops scored at or above this")] = 4.0,
+    limit: Annotated[int, typer.Option("--limit", help="Max rows to qualify (one LLM call each)")] = 5,
+    worksheets: Annotated[Path | None, typer.Option("--worksheets", help="Also write a worksheet per qualified row into this directory")] = None,
+    db: DbOption = None,
+) -> None:
+    """Re-qualify career-ops' best unapplied rows against YOUR bank.
+
+    career-ops finds and scores jobs; this reads its tracker and archived
+    JDs (no scraping), turns each into screenable requirements, and reports
+    bank coverage, verdict, and the critical gaps per role.
+    """
+    from .careerops import CareerOpsError, qualify
+    from .jd import render_worksheet
+
+    conn = _open(db)
+    try:
+        try:
+            results = qualify(conn, data_root, min_score=min_score, limit=limit)
+        except CareerOpsError as exc:
+            _fail(str(exc))
+            return
+    finally:
+        conn.close()
+
+    if not results:
+        typer.echo(
+            f"No rows in Evaluated status with career-ops score ≥ {min_score}. "
+            "Run career-ops' scan/evaluate first, or lower --min-score."
+        )
+        return
+
+    for result in results:
+        row = result.row
+        head = f"#{row.number}  {row.company} — {row.role}  (career-ops {row.score}/5)"
+        if result.error:
+            typer.secho(f"{head}: {result.error}", fg=typer.colors.YELLOW)
+            continue
+        typer.secho(head, bold=True)
+        typer.echo(str(result.fit))
+        if worksheets is not None:
+            worksheets.mkdir(parents=True, exist_ok=True)
+            slug = "".join(c if c.isalnum() else "-" for c in row.company.lower()).strip("-")
+            path = worksheets / f"{slug or 'role'}-{row.number}.yaml"
+            path.write_text(render_worksheet(result.fit.parsed, path.name), encoding="utf-8")
+            typer.echo(f"worksheet → {path}")
+        typer.echo("")
+
+
+@app.command("score-jd")
+def score_jd_cmd(
+    source: Annotated[Path, typer.Argument(help="A JD file (.txt/.md/.pdf/.docx) or an already-parsed worksheet (.yaml)")],
+    db: DbOption = None,
+) -> None:
+    """Score a job against your bank: should you even apply? (The intake qualifier.)
+
+    A .yaml worksheet scores with zero LLM calls; a raw JD file is parsed first.
+    """
+    from .jd import JDParseError, load_worksheet_template, parse_jd
+    from .llm import LLMError
+    from .scoring import score_fit
+
+    try:
+        if source.suffix.lower() in {".yaml", ".yml"}:
+            parsed = load_worksheet_template(source)
+        else:
+            parsed = parse_jd(extract_text(source))
+    except (FileNotFoundError, UnsupportedFormat, JDParseError, LLMError) as exc:
+        _fail(str(exc))
+        return
+
+    conn = _open(db)
+    try:
+        report = score_fit(conn, parsed)
+    finally:
+        conn.close()
+    typer.echo(str(report))
+    if report.verdict == "NO BANK":
+        typer.secho(
+            "The bank is empty — ingest a resume or load a filled worksheet first.",
+            fg=typer.colors.YELLOW,
+        )
+
+
 @app.command("eval-jd")
 def eval_jd_cmd(
     generated: Annotated[Path, typer.Argument(help="Generated worksheet (.yaml)")],

@@ -88,6 +88,18 @@ The model and token budget come from `$RESUME_TOOL_MODEL` / `$RESUME_TOOL_MAX_TO
 acceptance references: run the same JD through `parse-jd` and `eval-jd` scores
 requirement coverage, tiering agreement, and knockout extraction against them.
 
+### Intake: qualify jobs from career-ops (Phase −1)
+
+```bash
+resume intake ~/career-ops-data --min-score 4.0 --worksheets worksheets/
+resume score-jd jd.txt                 # one-off fit score; .yaml worksheet = zero LLM calls
+```
+
+[career-ops](https://github.com/career-ops-hq/career-ops) finds and scores
+jobs; `resume intake` reads its tracker and archived JDs (no scraping) and
+re-scores each against your bank: weighted requirement coverage,
+APPLY / STRETCH / SKIP, critical gaps named. See [docs/intake.md](docs/intake.md).
+
 ### Scoring retrieval against the golden set
 
 ```bash

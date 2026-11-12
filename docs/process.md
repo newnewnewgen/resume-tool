@@ -5,6 +5,16 @@ The canonical per-application process, standardized from the first full run
 are done by hand or in conversation until the corresponding build step
 automates them; the phase structure is the contract either way.
 
+## Phase −1 — Intake (see `intake.md`)
+
+Where applications come from. Discovery and first-pass scoring run in
+career-ops (scan → liveness → 1–5 evaluation → tracker); `resume intake`
+then re-qualifies its best unapplied rows against the bank — weighted
+requirement coverage, APPLY / STRETCH / SKIP, critical gaps named — reading
+the JDs career-ops already archived, no scraping. A role enters Phase 0
+only with both scores in hand; a strong role with weak coverage is a
+fill-the-bank errand first.
+
 ## Standing rules (always on, every phase)
 
 - **Truth boundary.** The system reframes; it never invents. A blank is

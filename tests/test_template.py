@@ -56,6 +56,7 @@ def test_headline_role():
     assert headline_role("Apprentice Product Manager (APM) — 2027 cohort") == \
         "Apprentice Product Manager"
     assert headline_role("Senior PM") == "Senior PM"
+    assert headline_role("Product Manager: New Grad Accelerator") == "Product Manager"
 
 
 @pytest.fixture
@@ -99,8 +100,18 @@ def test_plan_maps_bullets_and_finds_additions_and_gaps(bank):
 
 def test_docs_requests_only_automate_the_title(bank):
     conn, *_ = bank
-    parsed = ParsedJD(company="Shop", role_title="Senior PM", location=None, requirements=[])
+    parsed = ParsedJD(company="Shop", role_title="Associate Product Manager, Payments",
+                      location=None, requirements=[])
     plan = plan_template(conn, parse_template_markdown(TEMPLATE), parsed, score_fit(conn, parsed))
     requests = plan.docs_requests()
     assert len(requests) == 1
-    assert requests[0]["replaceAllText"]["replaceText"] == "Jane Doe | Senior PM"
+    assert requests[0]["replaceAllText"]["replaceText"] == \
+        "Jane Doe | Associate Product Manager, Payments"
+
+
+def test_title_swap_never_drops_an_early_career_marker(bank):
+    conn, *_ = bank
+    parsed = ParsedJD(company="Stripe", role_title="Product Manager: New Grad Accelerator",
+                      location=None, requirements=[])
+    plan = plan_template(conn, parse_template_markdown(TEMPLATE), parsed, score_fit(conn, parsed))
+    assert plan.title_change is None   # "Associate PM" stays; "PM" would read as inflated

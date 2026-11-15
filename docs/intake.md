@@ -92,3 +92,24 @@ mechanism.
   ourselves would mean network + liveness + parsing work career-ops already
   does better. Evaluate there first; intake picks up the report.
 - Writing to career-ops' tracker. One system of record per concern.
+
+## First live run (Nov 2026)
+
+77 public boards (Greenhouse, Lever, Ashby) probed and scanned through
+career-ops' zero-token scanner, with an early-career PM title filter and a
+Canada/US location filter. 115 postings landed; 97 were product roles, but
+only 3 were explicitly early-career, and a deterministic years-of-experience
+pass over the 24 Canada/remote PM roles found every one at 4+ years.
+
+Knockouts did the most work. Databricks (graduate Fall 2026 or later, CS
+degree) and Sierra (currently pursuing a CS degree) failed Phase 0 before a
+single bullet was written; Stripe's New Grad Accelerator passed every check
+but "a CS or engineering degree", and the cold-reader review rejected on
+exactly that. Lessons now in code: the parse prompt routes pace,
+disagreement and work-style lines to signals; the fit verdict always prints
+beside the knockouts; and the template headline never drops an early-career
+marker ("Product Manager" on a new-grad page read as an inflated title).
+
+Discovery runs here need the job-board hosts allowed in the cloud
+environment, and `CAREER_OPS_TRUST_PROXY_EGRESS=1` so the scanner goes
+through the egress proxy (safe there: the proxy only reaches allowed hosts).

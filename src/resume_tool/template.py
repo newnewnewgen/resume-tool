@@ -30,6 +30,7 @@ from .jd import ParsedJD
 from .scoring import FitReport
 
 SAME_STORY_AT = 0.45   # bullet-vs-summary overlap to call them one story
+_EARLY = re.compile(r"\b(associate|apprentice|junior|new grad|early career|apm|apx|rotational)\b", re.I)
 
 
 @dataclass
@@ -165,8 +166,10 @@ class TemplatePlan:
 
 
 def headline_role(role_title: str) -> str:
-    """'Apprentice Product Manager (APM) — 2027 cohort' → 'Apprentice Product Manager'."""
-    text = re.split(r"\s+[—–-]\s+", role_title)[0]
+    """'Apprentice Product Manager (APM) — 2027 cohort' → 'Apprentice Product Manager';
+    'Product Manager: New Grad Accelerator' → 'Product Manager' (program names
+    after a colon or dash are not a title)."""
+    text = re.split(r"\s+[—–-]\s+|\s*:\s+", role_title)[0]
     return re.sub(r"\s*\([^)]*\)", "", text).strip()
 
 
@@ -176,7 +179,12 @@ def plan_template(conn: sqlite3.Connection, template: TemplateDoc,
     if "|" in template.title_line:
         name, current_role = (p.strip() for p in template.title_line.split("|", 1))
         wanted = headline_role(parsed.role_title)
-        if wanted and wanted != current_role:
+        # The headline states a target, and a reader takes it as a claim. Never
+        # drop an early-career marker the author chose ("Associate", "APM"):
+        # "Product Manager" on a new-grad page reads as an inflated title
+        # (first cold-reader review, Stripe, Nov 2026).
+        if (wanted and wanted != current_role
+                and not (_EARLY.search(current_role) and not _EARLY.search(wanted))):
             title_change = (f"{name} | {current_role}", f"{name} | {wanted}")
 
     covers_by_exp: dict[int, list[str]] = {}

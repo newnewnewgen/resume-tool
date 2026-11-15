@@ -481,6 +481,12 @@ def template_plan_cmd(
     finally:
         conn.close()
     typer.echo(str(fit))
+    if parsed.knockouts:
+        # Coverage cannot see eligibility: an APPLY verdict means nothing
+        # until these are answered (first live run: 92% on a degree knockout).
+        typer.secho("\nKnockouts — answer before trusting the verdict:", bold=True)
+        for k in parsed.knockouts:
+            typer.echo(f"  [ ] {k.id}  {k.requirement}")
     typer.echo("")
     typer.echo(str(plan))
     if as_json:

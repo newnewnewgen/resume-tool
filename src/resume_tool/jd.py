@@ -84,7 +84,12 @@ JD lines that fail the test are NOT requirements:
 a decision
 - "deeply technical" → translate to: built something technically non-trivial
 What cannot be translated (essay fields, interview demeanor, communication \
-quality) goes in "signals", never in "requirements".
+quality) goes in "signals", never in "requirements". Three kinds of JD line \
+are ALWAYS signals, never requirements, because a resume cannot prove them: \
+pace or cadence ("ship fast", "the week, not the quarter", N releases in M \
+weeks), disagreement or critical opinion ("bring opinions", "embrace \
+disagreement"), and work style ("digital-first", "async", "remote-friendly \
+habits"). Put them in signals with interview prep.
 
 KNOCKOUTS are binary eligibility checks (work authorization, location, \
 degree, deadline, years-of-experience floors). They are answered yes/no \

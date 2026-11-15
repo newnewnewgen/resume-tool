@@ -337,3 +337,9 @@ def test_compare_threshold_blocks_weak_matches():
     report = compare(generated=gen, reference=ref)
     assert report.coverage == 0.0
     assert report.matches[0].score < MATCH_THRESHOLD
+
+
+def test_prompt_routes_unprovable_lines_to_signals():
+    from resume_tool.jd import SYSTEM_PROMPT
+    for phrase in ("pace or cadence", "disagreement", "work style"):
+        assert phrase in SYSTEM_PROMPT

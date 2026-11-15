@@ -67,7 +67,11 @@ fill-the-bank errand first.
    page-vs-pocket rule: one clause of mechanism on the page, the rest held
    for interviews. If a link can carry the proof, the bullet does not
    retell it.
-10. Render through the writer and pass the four gates, every iteration:
+10. **Output goes into a clone of the author's Google Docs template**, never a
+    new design: `resume template-plan` plans the edits, the author approves
+    content changes, an agent applies them (docs/template-editing.md).
+    Without a template, render through the writer instead and pass the four
+    gates, every iteration:
     round-trip PASS, ATS lint clean, page count = 1, requested edits
     asserted in the extracted text. On overflow, use layout levers (tight
     mode, spacing, link labels, margins) before cutting content; when

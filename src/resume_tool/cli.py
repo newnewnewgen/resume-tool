@@ -440,6 +440,53 @@ def apply_cmd(
     typer.echo(format_result(result))
 
 
+@app.command("template-plan")
+def template_plan_cmd(
+    template: Annotated[Path, typer.Argument(help="Markdown export of your Google Docs template (File > Download > Markdown)")],
+    source: Annotated[Path, typer.Argument(help="The JD (.txt/.md/.pdf/.docx) or its worksheet (.yaml)")],
+    no_llm: Annotated[bool, typer.Option("--no-llm", help="Keyword matching only (free, less sensitive)")] = False,
+    as_json: Annotated[bool, typer.Option("--json", help="Also print the automatable Docs requests as JSON")] = False,
+    db: DbOption = None,
+) -> None:
+    """Plan edits to a clone of YOUR template for this job — no new design.
+
+    Maps every template bullet to the bank story it tells, marks which
+    requirements each covers, and lists cut candidates, additions the bank
+    supports, and true gaps. Apply with docs/template-editing.md.
+    """
+    import json as _json
+
+    from .jd import JDParseError, load_worksheet_template, parse_jd
+    from .llm import LLMError, complete
+    from .scoring import score_fit
+    from .template import parse_template_markdown, plan_template
+
+    try:
+        doc = parse_template_markdown(template.read_text(encoding="utf-8"))
+        if source.suffix.lower() in {".yaml", ".yml"}:
+            parsed = load_worksheet_template(source)
+        else:
+            parsed = parse_jd(extract_text(source))
+    except (OSError, UnsupportedFormat, JDParseError, LLMError) as exc:
+        _fail(str(exc))
+        return
+
+    conn = _open(db)
+    try:
+        fit = score_fit(conn, parsed, complete_fn=None if no_llm else complete)
+        plan = plan_template(conn, doc, parsed, fit)
+    except LLMError as exc:
+        _fail(str(exc))
+        return
+    finally:
+        conn.close()
+    typer.echo(str(fit))
+    typer.echo("")
+    typer.echo(str(plan))
+    if as_json:
+        typer.echo(_json.dumps(plan.docs_requests(), indent=2))
+
+
 @app.command("intake")
 def intake_cmd(
     data_root: Annotated[Path, typer.Argument(help="Your career-ops data directory (holds data/applications.md and reports/)")],

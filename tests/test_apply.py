@@ -160,3 +160,110 @@ def test_profile_requires_name_and_email(tmp_path):
     path = write_template(tmp_path / "profile.yaml")
     with pytest.raises(ProfileError, match="contact.name"):
         load_profile(path)
+
+
+# ── coverage is a floor, not a filter ───────────────────────────────────────
+
+
+def test_jobs_without_matches_still_appear(bank, tmp_path):
+    conn, *_ = bank
+    other = store.add_job(conn, Job(employer="Achievers", title="Co-op",
+                                    start_date="2025-05", end_date="2025-12"))
+    for summary in ("Owned the GTM launch of a Microsoft integration.",
+                    "Ran surveys and market sizing for a product expansion.",
+                    "Designed enablement content for three personas."):
+        store.add_experience(conn, Experience(job_id=other.id, summary=summary))
+
+    result = run_apply(conn, PARSED, "jd", PROFILE, tmp_path, complete_fn=None)
+    planned = {store.get_experience(conn, e).job_id for e, _, _ in result.bullets}
+    assert other.id in planned                       # the unmatched job survived
+    from_other = [e for e, _, _ in result.bullets
+                  if store.get_experience(conn, e).job_id == other.id]
+    assert len(from_other) == 2                      # capped for unmatched jobs
+
+
+def test_matched_job_keeps_more_bullets(bank, tmp_path):
+    conn, figma, discovery = bank
+    regulars = figma.job_id
+    for summary in ("Built AI agents for GTM qualification.",
+                    "Closed the product's first two clients.",
+                    "Scoped features with engineering."):
+        store.add_experience(conn, Experience(job_id=regulars, summary=summary))
+    result = run_apply(conn, PARSED, "jd", PROFILE, tmp_path, complete_fn=None)
+    from_regulars = [e for e, _, _ in result.bullets
+                     if store.get_experience(conn, e).job_id == regulars]
+    assert len(from_regulars) == 4                   # matched first, then filler, capped
+    assert from_regulars[:2] == [figma.id, discovery.id] or \
+           set(from_regulars[:2]) == {figma.id, discovery.id}
+
+
+def test_project_employers_render_under_projects(bank, tmp_path):
+    from resume_tool.ingest import extract_text
+    conn, *_ = bank
+    pj = store.add_job(conn, Job(employer="Independent Projects", title="Builder",
+                                 start_date="2024-01"))
+    store.add_experience(conn, Experience(
+        job_id=pj.id, summary="Shipped a Figma design system plugin to 50 users."))
+    profile = Profile(contact=PROFILE.contact, project_employers=["Independent Projects"])
+    result = run_apply(conn, PARSED, "jd", profile, tmp_path, complete_fn=None)
+    text = extract_text(result.docx_path)
+    assert "PROJECTS" in text.upper()
+    assert "Builder" not in text                     # not rendered as a job
+    assert "Shipped a Figma design system plugin" in text
+
+
+# ── assembly: dates, section order, fitting one page ────────────────────────
+
+
+def test_human_dates():
+    from resume_tool.apply import _human_date
+    assert _human_date("2026-07") == "Jul 2026"
+    assert _human_date("2026") == "2026"
+    assert _human_date("Sep 2021") == "Sep 2021"
+    assert _human_date(None) == ""
+
+
+def test_section_order_follows_profile(bank, tmp_path):
+    from resume_tool.ingest import extract_text
+    from resume_tool.render import Entry
+    conn, *_ = bank
+    profile = Profile(contact=PROFILE.contact, skills=["Design: Figma"],
+                      education=[Entry(title="State U", organization="B.Com",
+                                       start_date="Sep 2021", end_date="May 2026")],
+                      section_order=["Education", "Experience", "Skills"])
+    result = run_apply(conn, PARSED, "jd", profile, tmp_path, complete_fn=None)
+    text = extract_text(result.docx_path).upper()
+    assert text.index("EDUCATION") < text.index("EXPERIENCE") < text.index("SKILLS")
+
+
+def test_page_fit_cuts_filler_never_matches_or_whole_jobs(bank, tmp_path, monkeypatch):
+    import resume_tool.apply as apply_mod
+    conn, figma, discovery = bank
+    other = store.add_job(conn, Job(employer="Achievers", title="Co-op",
+                                    start_date="2025-05", end_date="2025-12"))
+    for summary in ("Owned a GTM launch.", "Ran market sizing."):
+        store.add_experience(conn, Experience(job_id=other.id, summary=summary))
+
+    # Fake renderer: over one page until at most 3 bullets remain.
+    def fake_pages(path):
+        from resume_tool.ingest import extract_text
+        return 1 if extract_text(path).count("•") <= 3 else 2
+    monkeypatch.setattr(apply_mod, "_page_count", fake_pages)
+
+    result = run_apply(conn, PARSED, "jd", PROFILE, tmp_path, complete_fn=None)
+    assert result.pages == 1
+    assert result.cut_to_fit                         # something was cut
+    kept = [e for e, _, _ in result.bullets]
+    from resume_tool.ingest import extract_text
+    text = extract_text(result.docx_path)
+    assert figma.summary.split(",")[0] in text       # matched bullets survive
+    assert "Achievers" in text                       # the job survives with 1 bullet
+
+
+def test_page_fit_unchecked_without_renderer(bank, tmp_path, monkeypatch):
+    import resume_tool.apply as apply_mod
+    monkeypatch.setattr(apply_mod, "_page_count", lambda path: None)
+    conn, *_ = bank
+    result = run_apply(conn, PARSED, "jd", PROFILE, tmp_path, complete_fn=None)
+    assert result.pages is None and not result.cut_to_fit
+    assert "unchecked" in format_result(result)

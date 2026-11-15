@@ -135,3 +135,13 @@ and fixed in the same session:
 Before the fixes the run scored the author's own bank 37% / SKIP on a role
 it demonstrably fits; after, 100% / APPLY with every match quote-grounded
 and all generated bullets passing the truth check.
+
+**Third find, same run: the draft had 5 bullets.** Assembly kept only
+experiences that matched a requirement, so whole jobs vanished, which
+breaks writing-guidelines rule 5 (coverage is a floor, not a filter). Now
+every job stays: matched experiences first (up to 4 per job), then the job's
+most JD-relevant other facts (up to 2 for jobs with no match). A page-fit
+loop renders and counts pages, tries layout levers (margins, then type
+size) before content, and cuts only unmatched filler, never a match and
+never a job's last bullet. Cuts are reported, not silent. Same run: 16
+bullets across all 7 jobs, one page, nothing cut.

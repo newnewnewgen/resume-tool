@@ -19,6 +19,7 @@ import yaml
 from .render import Contact, Entry
 
 DEFAULT_PROFILE_PATH = Path.home() / ".resume-tool" / "profile.yaml"
+DEFAULT_SECTION_ORDER = ("Experience", "Projects", "Skills", "Education")
 
 TEMPLATE = """\
 # resume-tool profile — the per-person constants assembly needs.
@@ -45,6 +46,17 @@ skills:
 # Optional fixed projects/leadership entries (title, link_label, link_url,
 # date, bullets). Selection may trim them, never invent them.
 projects: []
+
+# Bank "employers" that are really project containers — their experiences
+# count for matching but render under Projects, never Experience.
+project_employers: []
+
+# Section order on the page. Early-career applications often lead with
+# Education so eligibility is answered in the first two lines.
+section_order: [Experience, Projects, Skills, Education]
+
+# Body font. The PDF needs it installed where it renders (Inter, Calibri...).
+font: Calibri
 """
 
 
@@ -58,6 +70,11 @@ class Profile:
     education: list[Entry] = field(default_factory=list)
     skills: list[str] = field(default_factory=list)
     projects: list[Entry] = field(default_factory=list)
+    # Bank jobs whose experiences are projects, not employment: matched like
+    # anything else, rendered under Projects instead of Experience.
+    project_employers: list[str] = field(default_factory=list)
+    section_order: list[str] = field(default_factory=lambda: list(DEFAULT_SECTION_ORDER))
+    font: str = "Calibri"
 
 
 def profile_path(override: Path | str | None = None) -> Path:
@@ -126,4 +143,11 @@ def load_profile(path: Path | str | None = None) -> Profile:
         ))
 
     skills = [str(s).strip() for s in data.get("skills") or [] if str(s).strip()]
-    return Profile(contact=contact, education=education, skills=skills, projects=projects)
+    project_employers = [str(e).strip() for e in data.get("project_employers") or []
+                         if str(e).strip()]
+    section_order = [str(s).strip() for s in data.get("section_order") or []
+                     if str(s).strip()] or list(DEFAULT_SECTION_ORDER)
+    font = str(data.get("font") or "Calibri").strip()
+    return Profile(contact=contact, education=education, skills=skills,
+                   projects=projects, project_employers=project_employers,
+                   section_order=section_order, font=font)

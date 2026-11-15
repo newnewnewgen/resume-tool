@@ -11,11 +11,12 @@ failure): re-running against an edited JD re-validates instead of discarding.
 
 from __future__ import annotations
 
+import re
 import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from . import store
+from . import retrieval, store
 from .jd import ParsedJD
 from .models import MatchState, Tier
 from .profile import Profile
@@ -24,7 +25,11 @@ from .scoring import FitReport, score_fit
 from .tellings import telling_for
 
 STRONG_AT = 0.4           # retrieval score for a strong match; below → weak
-MAX_BULLETS_PER_JOB = 4
+# Coverage is a floor, not a filter (writing-guidelines rule 5): every job
+# stays on the page. A job that covers requirements earns up to 4 bullets;
+# one that covers none keeps its 2 most JD-relevant, so range survives.
+MAX_BULLETS_MATCHED_JOB = 4
+MAX_BULLETS_OTHER_JOB = 2
 
 
 @dataclass
@@ -47,6 +52,8 @@ class ApplyResult:
     docx_path: Path | None = None
     roundtrip_ok: bool | None = None
     lint_clean: bool | None = None
+    pages: int | None = None              # None when no PDF renderer is installed
+    cut_to_fit: list[str] = field(default_factory=list)
 
 
 def run_apply(
@@ -65,20 +72,19 @@ def run_apply(
     application_id = store_application(conn, parsed, jd_text)
     decisions = _persist_matches(conn, application_id, fit)
 
-    selected = _select_experiences(decisions)
     bullets = []
-    for experience_id, angles in selected:
+    for experience_id, angle in _plan_bullets(conn, decisions, parsed, profile):
         experience = store.get_experience(conn, experience_id)
         existing = store.tellings_for(conn, experience_id)
-        text, source = telling_for(experience, "; ".join(angles), existing, complete_fn)
+        text, source = telling_for(experience, angle, existing, complete_fn)
         bullets.append((experience_id, text, source))
 
     result = ApplyResult(application_id=application_id, fit=fit,
                          decisions=decisions, bullets=bullets)
 
     if profile is not None and bullets:
-        result.docx_path, result.roundtrip_ok, result.lint_clean = _assemble(
-            conn, parsed, profile, bullets, Path(out_dir))
+        matched = {d.experience_id for d in decisions if d.experience_id is not None}
+        _assemble(conn, parsed, profile, bullets, matched, Path(out_dir), result)
     return result
 
 
@@ -131,43 +137,164 @@ def _select_experiences(decisions: list[MatchDecision]) -> list[tuple[int, list[
     return [(e, angles[e]) for e in ranked]
 
 
-def _assemble(conn, parsed: ParsedJD, profile: Profile,
-              bullets: list[tuple[int, str, str]], out_dir: Path):
-    from .render import write_docx
+def _project_employers(profile: Profile | None) -> set[str]:
+    return set(profile.project_employers) if profile else set()
 
-    by_experience = {e: (t, s) for e, t, s in bullets}
-    jobs = store.list_jobs(conn)
-    entries = []
-    for job in jobs:
-        job_bullets = []
-        for experience in store.list_experiences(conn, job.id):
-            if experience.id in by_experience:
-                job_bullets.append(by_experience[experience.id][0])
-        if job_bullets:
-            entries.append(Entry(
-                title=job.title, organization=job.employer,
-                start_date=job.start_date or "", end_date=job.end_date or "",
-                location=job.location or "",
-                bullets=job_bullets[:MAX_BULLETS_PER_JOB],
-            ))
 
-    sections = [Section(heading="Experience", entries=entries)]
+def _plan_bullets(conn, decisions: list[MatchDecision], parsed: ParsedJD,
+                  profile: Profile | None) -> list[tuple[int, str]]:
+    """Which experiences go on the page, in order, with each one's angle.
+
+    Per job: experiences that matched requirements first (ranked by the
+    tier-weighted coverage they carry), then the job's remaining facts by
+    relevance to the whole JD, capped. Jobs named in the profile's
+    project_employers are matched like any experience but render through
+    the profile's Projects section, so they get no planned bullets here
+    when the profile supplies its own project entries."""
+    ranked = _select_experiences(decisions)
+    rank = {exp_id: i for i, (exp_id, _) in enumerate(ranked)}
+    angles = dict(ranked)
+    jd_tokens = retrieval.tokenize(" ".join(
+        f"{r.requirement} {r.evidence}" for r in parsed.requirements))
+    skip = _project_employers(profile) if profile and profile.projects else set()
+    default_angle = f"{parsed.role_title} at {parsed.company}"
+
+    plan = []
+    for job in store.list_jobs(conn):
+        if job.employer in skip:
+            continue
+        experiences = store.list_experiences(conn, job.id)
+        matched = sorted((e for e in experiences if e.id in rank), key=lambda e: rank[e.id])
+        others = sorted((e for e in experiences if e.id not in rank),
+                        key=lambda e: -retrieval.score_experience(jd_tokens, e))
+        cap = MAX_BULLETS_MATCHED_JOB if matched else MAX_BULLETS_OTHER_JOB
+        for experience in (matched + others)[:cap]:
+            angle = "; ".join(angles.get(experience.id, [])) or default_angle
+            plan.append((experience.id, angle))
+    return plan
+
+
+# Layout levers, gentlest first. Content is cut only after all of them fail
+# (assembly-learnings: chasing wrap boundaries with wording edits never works).
+LAYOUT_LADDER = (
+    {"margin": 0.5, "size": 9.5},
+    {"margin": 0.45, "size": 9.5},
+    {"margin": 0.4, "size": 9.5},
+    {"margin": 0.4, "size": 9.0},
+)
+_MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split()
+
+
+def _human_date(value: str | None) -> str:
+    """'2026-07' -> 'Jul 2026'; 'YYYY' and pre-formatted strings pass through."""
+    if not value:
+        return ""
+    m = re.fullmatch(r"(\d{4})-(\d{2})", value.strip())
+    if m and 1 <= int(m.group(2)) <= 12:
+        return f"{_MONTHS[int(m.group(2)) - 1]} {m.group(1)}"
+    return value.strip()
+
+
+def _build_doc(conn, profile: Profile, bullets: list[tuple[int, str, str]]) -> ResumeDoc:
+    order = [e for e, _, _ in bullets]
+    text_for = {e: t for e, t, _ in bullets}
+    project_employers = _project_employers(profile)
+    entries, project_bullets = [], []
+    for job in store.list_jobs(conn):
+        job_ids = {e.id for e in store.list_experiences(conn, job.id)}
+        job_bullets = [text_for[e] for e in order if e in job_ids]
+        if not job_bullets:
+            continue
+        if job.employer in project_employers:
+            project_bullets.extend(job_bullets)
+            continue
+        entries.append(Entry(
+            title=job.title, organization=job.employer,
+            start_date=_human_date(job.start_date), end_date=_human_date(job.end_date),
+            location=job.location or "", bullets=job_bullets,
+        ))
+
+    available = {"Experience": Section(heading="Experience", entries=entries)}
     if profile.projects:
-        sections.append(Section(heading="Projects", entries=profile.projects))
+        available["Projects"] = Section(heading="Projects", entries=profile.projects)
+    elif project_bullets:
+        available["Projects"] = Section(heading="Projects", entries=[
+            Entry(title="Selected projects", organization="", bullets=project_bullets)])
     if profile.skills:
-        sections.append(Section(heading="Skills", lines=profile.skills))
+        available["Skills"] = Section(heading="Skills", lines=profile.skills)
     if profile.education:
-        sections.append(Section(heading="Education", entries=profile.education))
-    doc = ResumeDoc(contact=profile.contact, sections=sections)
+        available["Education"] = Section(heading="Education", entries=profile.education)
+
+    sections = [available.pop(name) for name in profile.section_order if name in available]
+    sections.extend(available.values())  # anything the order didn't name, appended
+    return ResumeDoc(contact=profile.contact, sections=sections)
+
+
+def _page_count(docx_path: Path) -> int | None:
+    """Render with LibreOffice and count pages; None if no renderer exists."""
+    import shutil
+    import subprocess
+    import tempfile
+
+    soffice = shutil.which("soffice") or shutil.which("libreoffice")
+    if soffice is None:
+        return None
+    with tempfile.TemporaryDirectory() as tmp:
+        try:
+            subprocess.run([soffice, "--headless", "--convert-to", "pdf",
+                            "--outdir", tmp, str(docx_path)],
+                           check=True, capture_output=True, timeout=120)
+            from pypdf import PdfReader
+            return len(PdfReader(str(Path(tmp) / f"{docx_path.stem}.pdf")).pages)
+        except (subprocess.SubprocessError, OSError, FileNotFoundError):
+            return None
+
+
+def _cut_candidates(conn, bullets, matched: set[int]) -> list[int]:
+    """Filler bullets (matched nothing), oldest job and lowest rank first,
+    never a job's last remaining bullet."""
+    job_of = {e: store.get_experience(conn, e).job_id for e, _, _ in bullets}
+    return [e for e, _, _ in reversed(bullets) if e not in matched and job_of[e] is not None]
+
+
+def _assemble(conn, parsed: ParsedJD, profile: Profile,
+              bullets: list[tuple[int, str, str]], matched: set[int],
+              out_dir: Path, result: "ApplyResult") -> None:
+    from .render import write_docx
 
     out_dir.mkdir(parents=True, exist_ok=True)
     slug = "".join(c if c.isalnum() else "-" for c in parsed.company.lower()).strip("-")
     path = out_dir / f"draft-{slug or 'role'}.docx"
-    write_docx(doc, path, tight=True)
+
+    kept = list(bullets)
+    pages = None
+    while True:
+        doc = _build_doc(conn, profile, kept)
+        for layout in LAYOUT_LADDER:
+            write_docx(doc, path, font=profile.font, size=layout["size"],
+                       margin=layout["margin"], tight=True)
+            pages = _page_count(path)
+            if pages is None or pages <= 1:
+                break
+        if pages is None or pages <= 1:
+            break
+        job_of = {e: store.get_experience(conn, e).job_id for e, _, _ in kept}
+        per_job: dict[int, int] = {}
+        for e, _, _ in kept:
+            per_job[job_of[e]] = per_job.get(job_of[e], 0) + 1
+        victim = next((e for e in _cut_candidates(conn, kept, matched)
+                       if per_job[job_of[e]] > 1), None)
+        if victim is None:
+            break  # nothing left that can be cut without losing a job or a match
+        result.cut_to_fit.append(next(t for e, t, _ in kept if e == victim))
+        kept = [b for b in kept if b[0] != victim]
+
     roundtrip = verify_roundtrip(doc, out_dir / f".roundtrip-{slug}.docx")
     issues = lint_docx(path)
-    lint_clean = not any(i.level == "error" for i in issues)
-    return path, roundtrip.ok, lint_clean
+    result.docx_path = path
+    result.roundtrip_ok = roundtrip.ok
+    result.lint_clean = not any(i.level == "error" for i in issues)
+    result.pages = pages
 
 
 def format_result(result: ApplyResult) -> str:
@@ -205,5 +332,11 @@ def format_result(result: ApplyResult) -> str:
     if result.docx_path:
         rt = "PASS" if result.roundtrip_ok else "FAIL"
         lint = "clean" if result.lint_clean else "ISSUES"
-        lines.append(f"Draft resume: {result.docx_path}  (round-trip {rt}, lint {lint})")
+        pages = "unchecked (no LibreOffice)" if result.pages is None else str(result.pages)
+        lines.append(f"Draft resume: {result.docx_path}  "
+                     f"(round-trip {rt}, lint {lint}, pages {pages})")
+        if result.pages and result.pages > 1:
+            lines.append("  ! still over one page after every layout lever and safe cut")
+        for text in result.cut_to_fit:
+            lines.append(f"  cut to fit: {text}")
     return "\n".join(lines)

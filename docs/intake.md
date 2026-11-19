@@ -135,14 +135,27 @@ Shopify run custom sites with no zero-token reader; their programs open on a
 yearly calendar and are cheaper to watch by hand.
 
 `resume screen-postings` now reads JDs from Workday (both URL shapes),
-SmartRecruiters and Workable as well as the original three. Workday's
-firewall rate-limits bursts across all tenants at once, so the fetcher backs
-off on 429 instead of failing the posting.
+SmartRecruiters and Workable as well as the original three.
+
+Workday took some digging. career-ops pages every tenant's whole board and
+all 22 tenants came back 429. The cause was the client, not the pace:
+Workday's Cloudflare throttles HTTP/1.1, so Python's urllib got 429 on every
+call while curl over HTTP/2 got 200 at the same rate. So:
+
+- the Workday entries in `intake/portals.yml` are disabled for career-ops;
+- `resume scan-workday` reads them instead, over curl, filtering each board
+  by its product job-family facet ("Product", "Product Management") so one
+  or two requests cover a tenant, with keyword search only as a fallback
+  (Workday's keyword search matches descriptions too, so it returns
+  directors and engineers);
+- the JD fetcher uses curl as well and backs off on 429.
+
+The first full run read all 22 tenants in about 90 seconds.
 
 ## Weekly search
 
 A scheduled routine runs the whole intake once a week in a fresh cloud
-session: scan with `--since 7`, `resume screen-postings`, knockouts checked
+session: scan with `--since 7`, `resume scan-workday`, `resume screen-postings`, knockouts checked
 against the author's eligibility, and a template clone for anything that
 survives. It notifies only when a role passes. It never edits the master
 template; content edits still go to the author first.

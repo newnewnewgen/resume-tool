@@ -13,6 +13,8 @@ from __future__ import annotations
 import html
 import json
 import re
+import shutil
+import subprocess
 import time
 import urllib.error
 import urllib.parse
@@ -76,39 +78,50 @@ def _strip_html(h: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", re.sub(r"<[^>]+>", "", h)).strip()
 
 
-def _get(url: str, retries: int = 3):
-    """GET JSON. Workday's firewall answers bursts with 429, so back off and retry."""
-    req = urllib.request.Request(url, headers={"User-Agent": "curl/8.5.0", "Accept": "application/json"})
+class HTTPStatusError(Exception):
+    def __init__(self, code: int, url: str):
+        super().__init__(f"HTTP {code} from {url}")
+        self.code = code
+
+
+def _request(url: str, body: dict | None = None):
+    """One JSON request. Prefers curl: Workday's Cloudflare throttles HTTP/1.1
+    clients (urllib got 429 on every call where curl over HTTP/2 got 200, at
+    the same pace, Nov 2026)."""
+    data = json.dumps(body) if body is not None else None
+    if shutil.which("curl"):
+        cmd = ["curl", "-sS", "--max-time", "60", "-A", "curl/8.5.0",
+               "-H", "Accept: application/json", "-w", "\n%{http_code}"]
+        if data is not None:
+            cmd += ["-X", "POST", "-H", "Content-Type: application/json", "--data-binary", "@-"]
+        out = subprocess.run(cmd + [url], input=data or "", capture_output=True, text=True, check=True).stdout
+        payload, _, code = out.rpartition("\n")
+        if not code.isdigit() or int(code) >= 400:
+            raise HTTPStatusError(int(code) if code.isdigit() else 0, url)
+        return json.loads(payload)
+    req = urllib.request.Request(
+        url, data=data.encode() if data is not None else None,
+        headers={"User-Agent": "curl/8.5.0", "Accept": "application/json",
+                 **({"Content-Type": "application/json"} if data is not None else {})})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return json.loads(r.read())
+    except urllib.error.HTTPError as exc:
+        raise HTTPStatusError(exc.code, url) from exc
+
+
+def _with_backoff(fn, retries: int = 3, base: float = 5.0):
     for attempt in range(retries + 1):
         try:
-            with urllib.request.urlopen(req, timeout=60) as r:
-                return json.loads(r.read())
-        except urllib.error.HTTPError as exc:
+            return fn()
+        except HTTPStatusError as exc:
             if exc.code != 429 or attempt == retries:
                 raise
-            time.sleep(5 * (attempt + 1))
+            time.sleep(base * (attempt + 1))
 
 
-_WORKDAY_JOBS = re.compile(
-    r"^https://(?P<tenant>[\w-]+)\.(?P<inst>wd[\w-]*)\.myworkdayjobs\.com/"
-    r"(?:[a-z]{2}-[A-Z]{2}/)?(?P<site>[^/?#]+)(?P<path>/job/[^?#]+)")
-_WORKDAY_SITE = re.compile(
-    r"^https://(?P<host>[\w-]+\.myworkdaysite\.com)/(?:[a-z]{2}-[A-Z]{2}/)?recruiting/"
-    r"(?P<tenant>[\w-]+)/(?P<site>[^/?#]+)(?P<path>/job/[^?#]+)")
-
-
-def workday_detail_url(posting_url: str) -> str | None:
-    """The CXS detail endpoint for a Workday posting URL, or None if it isn't one.
-    Both public shapes career-ops emits: {tenant}.wdN.myworkdayjobs.com/{site}/job/...
-    and wdN.myworkdaysite.com/recruiting/{tenant}/{site}/job/..."""
-    m = _WORKDAY_JOBS.match(posting_url)
-    if m:
-        host = f"{m['tenant']}.{m['inst']}.myworkdayjobs.com"
-        return f"https://{host}/wday/cxs/{m['tenant']}/{m['site']}{m['path']}"
-    m = _WORKDAY_SITE.match(posting_url)
-    if m:
-        return f"https://{m['host']}/wday/cxs/{m['tenant']}/{m['site']}{m['path']}"
-    return None
+def _get(url: str):
+    return _with_backoff(lambda: _request(url))
 
 
 # ── Workday discovery ───────────────────────────────────────────────────────
@@ -155,29 +168,49 @@ def posted_days_ago(label: str) -> int | None:
     return int(m.group(1))
 
 
-def _post(url: str, body: dict, retries: int = 3):
-    req = urllib.request.Request(url, data=json.dumps(body).encode(), headers={
-        "Content-Type": "application/json", "Accept": "application/json", "User-Agent": "curl/8.5.0"})
-    for attempt in range(retries + 1):
-        try:
-            with urllib.request.urlopen(req, timeout=60) as r:
-                return json.loads(r.read())
-        except urllib.error.HTTPError as exc:
-            if exc.code != 429 or attempt == retries:
-                raise
-            time.sleep(10 * (attempt + 1))
+def _post(url: str, body: dict):
+    return _with_backoff(lambda: _request(url, body), base=10.0)
 
 
-def workday_search(careers_url: str, search: str = "product", max_pages: int = 3,
+_PRODUCT_FACET = re.compile(r"\bproduct\b", re.I)
+
+
+def product_facets(facets: list[dict]) -> dict[str, list[str]]:
+    """Workday facet values that name a product job family ('Product
+    Management', 'Product'), as an appliedFacets body. Facets nest one level
+    on some tenants."""
+    applied: dict[str, list[str]] = {}
+
+    def walk(group):
+        for v in group.get("values") or []:
+            if "facetParameter" in v:
+                walk(v)
+            elif _PRODUCT_FACET.search(v.get("descriptor", "")) and "marketing" not in v.get("descriptor", "").lower():
+                applied.setdefault(group["facetParameter"], []).append(v["id"])
+
+    for f in facets or []:
+        if f.get("facetParameter", "").lower().startswith("jobfamily"):
+            walk(f)
+    return applied
+
+
+def workday_search(careers_url: str, search: str = "product manager", max_pages: int = 5,
                    since_days: int | None = None, post=_post) -> list[dict]:
-    """Early-career-eligible product postings on one Workday board."""
+    """Early-career-eligible product postings on one Workday board: filtered by
+    the board's product job-family facet when it has one, else by keyword
+    (Workday's keyword search also matches descriptions, so titles still get
+    checked here)."""
     board = workday_board(careers_url)
     if not board:
         raise ValueError(f"not a Workday careers URL: {careers_url}")
     api, base = board
+    first = post(api, {"limit": 1, "offset": 0, "searchText": "", "appliedFacets": {}})
+    applied = product_facets(first.get("facets") or [])
+    text = "" if applied else search
     found = []
     for page in range(max_pages):
-        d = post(api, {"limit": 20, "offset": page * 20, "searchText": search, "appliedFacets": {}})
+        time.sleep(2)
+        d = post(api, {"limit": 20, "offset": page * 20, "searchText": text, "appliedFacets": applied})
         rows = d.get("jobPostings") or []
         for j in rows:
             title = j.get("title", "")
@@ -192,7 +225,6 @@ def workday_search(careers_url: str, search: str = "product", max_pages: int = 3
                           "location": j.get("locationsText", ""), "posted": j.get("postedOn", "")})
         if len(rows) < 20 or (page + 1) * 20 >= (d.get("total") or 0):
             break
-        time.sleep(2)
     return found
 
 
@@ -223,6 +255,28 @@ def scan_workday(portals_yml: Path, pipeline_md: Path, since_days: int | None = 
         pipeline_md.parent.mkdir(parents=True, exist_ok=True)
         pipeline_md.write_text(text, encoding="utf-8")
     return len(lines), errors
+
+
+_WORKDAY_JOBS = re.compile(
+    r"^https://(?P<tenant>[\w-]+)\.(?P<inst>wd[\w-]*)\.myworkdayjobs\.com/"
+    r"(?:[a-z]{2}-[A-Z]{2}/)?(?P<site>[^/?#]+)(?P<path>/job/[^?#]+)")
+_WORKDAY_SITE = re.compile(
+    r"^https://(?P<host>[\w-]+\.myworkdaysite\.com)/(?:[a-z]{2}-[A-Z]{2}/)?recruiting/"
+    r"(?P<tenant>[\w-]+)/(?P<site>[^/?#]+)(?P<path>/job/[^?#]+)")
+
+
+def workday_detail_url(posting_url: str) -> str | None:
+    """The CXS detail endpoint for a Workday posting URL, or None if it isn't one.
+    Both public shapes career-ops emits: {tenant}.wdN.myworkdayjobs.com/{site}/job/...
+    and wdN.myworkdaysite.com/recruiting/{tenant}/{site}/job/..."""
+    m = _WORKDAY_JOBS.match(posting_url)
+    if m:
+        host = f"{m['tenant']}.{m['inst']}.myworkdayjobs.com"
+        return f"https://{host}/wday/cxs/{m['tenant']}/{m['site']}{m['path']}"
+    m = _WORKDAY_SITE.match(posting_url)
+    if m:
+        return f"https://{m['host']}/wday/cxs/{m['tenant']}/{m['site']}{m['path']}"
+    return None
 
 
 def fetch_jd(careers_url: str, posting_url: str) -> str:

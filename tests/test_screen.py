@@ -93,7 +93,7 @@ def test_workday_board_and_age():
     assert posted_days_ago("Posted 30+ Days Ago") is None
 
 
-def test_scan_workday_appends_early_product_roles(tmp_path):
+def test_scan_workday_appends_early_product_roles(tmp_path, monkeypatch):
     from resume_tool.screen import parse_pipeline, scan_workday, workday_search
     page = {"total": 4, "jobPostings": [
         {"title": "Associate Product Manager", "externalPath": "/job/Toronto/APM_R1",
@@ -112,9 +112,25 @@ def test_scan_workday_appends_early_product_roles(tmp_path):
     def search(url, since_days):
         return workday_search(url, since_days=since_days, post=lambda api, body: page)
 
+    monkeypatch.setattr("resume_tool.screen.time.sleep", lambda s: None)
+
     added, errors = scan_workday(portals, pipeline, since_days=7, pause=0, search=search)
     assert (added, errors) == (1, [])
     items = parse_pipeline(pipeline.read_text())
     assert [i.title for i in items] == ["PM", "Associate Product Manager"]
     assert items[1].url == "https://visa.wd5.myworkdayjobs.com/Visa/job/Toronto/APM_R1"
     assert scan_workday(portals, pipeline, since_days=7, pause=0, search=search)[0] == 0  # dedup
+
+
+def test_product_facets_picks_product_families_only():
+    from resume_tool.screen import product_facets
+    facets = [
+        {"facetParameter": "jobFamilyGroup", "values": [
+            {"descriptor": "Engineering", "id": "e1"},
+            {"descriptor": "Product Management", "id": "p1"},
+            {"descriptor": "Product Marketing", "id": "pm1"}]},
+        {"facetParameter": "locations", "values": [{"descriptor": "Product City", "id": "x"}]},
+        {"facetParameter": "jobFamilyGroup_nested", "values": [
+            {"facetParameter": "jobFamily", "values": [{"descriptor": "Product", "id": "p2"}]}]},
+    ]
+    assert product_facets(facets) == {"jobFamilyGroup": ["p1"], "jobFamily": ["p2"]}

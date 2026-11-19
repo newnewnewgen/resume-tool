@@ -493,6 +493,25 @@ def template_plan_cmd(
         typer.echo(_json.dumps(plan.docs_requests(), indent=2))
 
 
+@app.command("scan-workday")
+def scan_workday_cmd(
+    portals: Annotated[Path, typer.Argument(help="portals.yml with Workday careers URLs")],
+    pipeline: Annotated[Path, typer.Argument(help="career-ops data/pipeline.md to append to")],
+    since: Annotated[int, typer.Option("--since", help="Only postings from the last N days (0 = any age)")] = 7,
+) -> None:
+    """Search each Workday board for early-career product roles, gently.
+
+    career-ops pages whole Workday boards and gets rate-limited; this runs one
+    keyword search per tenant and appends what it finds to the pipeline.
+    """
+    from .screen import scan_workday
+
+    added, errors = scan_workday(portals, pipeline, since_days=since or None)
+    typer.echo(f"{added} Workday posting(s) added to {pipeline}")
+    for e in errors:
+        typer.echo(f"  ✗ {e}")
+
+
 @app.command("screen-postings")
 def screen_postings_cmd(
     pipeline: Annotated[Path, typer.Argument(help="career-ops data/pipeline.md")],

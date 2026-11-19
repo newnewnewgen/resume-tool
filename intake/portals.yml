@@ -1,0 +1,669 @@
+# Discovery targets for the weekly search: tech companies with APM, rotational
+# or junior PM roles in Canada/US. Read by career-ops' scan.mjs (copy to its
+# data dir as portals.yml). Research + liveness checks: Nov 2026.
+# Workday entries are disabled for career-ops (it pages whole boards and gets
+# rate-limited); `resume scan-workday` searches them gently instead.
+# Every host here must be allowed in the cloud environment's network policy.
+title_filter:
+  positive:
+  - Associate Product Manager
+  - word:APM
+  - Apprentice Product
+  - Rotational Product
+  - Product Manager
+  - Product Operations
+  - Product Ops
+  - Growth Product
+  - New Grad
+  - Early Career
+  negative:
+  - word:Senior
+  - word:Sr
+  - word:Staff
+  - word:Principal
+  - word:Director
+  - Head of
+  - word:VP
+  - word:Lead
+  - Group Product
+  - Product Manager II
+  - Product Manager III
+  - Engineering Manager
+  - word:Intern
+  - Internship
+  - Marketing Manager
+location_filter:
+  always_allow:
+  - Canada
+  - Vancouver
+  - Toronto
+  - Montreal
+  - United States
+  - USA
+  block_hard:
+  - London
+  - Dublin, Ireland
+  - United Kingdom
+  - Germany
+  - Berlin
+  - Paris
+  - Amsterdam
+  - India
+  - Bengaluru
+  - Singapore
+  - Sydney
+  - Tokyo
+  - Brazil
+  - Mexico City
+  allow:
+  - Remote
+  - North America
+  - San Francisco
+  - New York
+  - Seattle
+tracked_companies:
+- name: 1password
+  careers_url: https://jobs.ashbyhq.com/1password
+  enabled: true
+- name: affirm
+  careers_url: https://job-boards.greenhouse.io/affirm
+  enabled: true
+- name: airbnb
+  careers_url: https://job-boards.greenhouse.io/airbnb
+  enabled: true
+- name: airtable
+  careers_url: https://job-boards.greenhouse.io/airtable
+  enabled: true
+- name: anthropic
+  careers_url: https://job-boards.greenhouse.io/anthropic
+  enabled: true
+- name: asana
+  careers_url: https://job-boards.greenhouse.io/asana
+  enabled: true
+- name: ashby
+  careers_url: https://jobs.ashbyhq.com/ashby
+  enabled: true
+- name: attio
+  careers_url: https://jobs.ashbyhq.com/attio
+  enabled: true
+- name: benchling
+  careers_url: https://jobs.ashbyhq.com/benchling
+  enabled: true
+- name: brex
+  careers_url: https://job-boards.greenhouse.io/brex
+  enabled: true
+- name: calendly
+  careers_url: https://job-boards.greenhouse.io/calendly
+  enabled: true
+- name: character
+  careers_url: https://jobs.ashbyhq.com/character
+  enabled: true
+- name: clickup
+  careers_url: https://jobs.ashbyhq.com/clickup
+  enabled: true
+- name: cohere
+  careers_url: https://jobs.ashbyhq.com/cohere
+  enabled: true
+- name: coinbase
+  careers_url: https://job-boards.greenhouse.io/coinbase
+  enabled: true
+- name: contentful
+  careers_url: https://job-boards.greenhouse.io/contentful
+  enabled: true
+- name: cresta
+  careers_url: https://job-boards.greenhouse.io/cresta
+  enabled: true
+- name: d2l
+  careers_url: https://job-boards.greenhouse.io/d2l
+  enabled: true
+- name: databricks
+  careers_url: https://job-boards.greenhouse.io/databricks
+  enabled: true
+- name: descript
+  careers_url: https://job-boards.greenhouse.io/descript
+  enabled: true
+- name: discord
+  careers_url: https://job-boards.greenhouse.io/discord
+  enabled: true
+- name: dropbox
+  careers_url: https://job-boards.greenhouse.io/dropbox
+  enabled: true
+- name: duolingo
+  careers_url: https://job-boards.greenhouse.io/duolingo
+  enabled: true
+- name: elevenlabs
+  careers_url: https://jobs.ashbyhq.com/elevenlabs
+  enabled: true
+- name: faire
+  careers_url: https://job-boards.greenhouse.io/faire
+  enabled: true
+- name: figma
+  careers_url: https://job-boards.greenhouse.io/figma
+  enabled: true
+- name: float
+  careers_url: https://jobs.ashbyhq.com/float
+  enabled: true
+- name: fly
+  careers_url: https://jobs.lever.co/fly
+  enabled: true
+- name: gamma
+  careers_url: https://jobs.ashbyhq.com/gamma
+  enabled: true
+- name: geotab
+  careers_url: https://job-boards.greenhouse.io/geotab
+  enabled: true
+- name: gusto
+  careers_url: https://job-boards.greenhouse.io/gusto
+  enabled: true
+- name: harvey
+  careers_url: https://jobs.ashbyhq.com/harvey
+  enabled: true
+- name: hootsuite
+  careers_url: https://job-boards.greenhouse.io/hootsuite
+  enabled: true
+- name: ideogram
+  careers_url: https://jobs.ashbyhq.com/ideogram
+  enabled: true
+- name: instacart
+  careers_url: https://job-boards.greenhouse.io/instacart
+  enabled: true
+- name: intercom
+  careers_url: https://job-boards.greenhouse.io/intercom
+  enabled: true
+- name: koho
+  careers_url: https://jobs.ashbyhq.com/koho
+  enabled: true
+- name: lattice
+  careers_url: https://job-boards.greenhouse.io/lattice
+  enabled: true
+- name: linear
+  careers_url: https://jobs.ashbyhq.com/linear
+  enabled: true
+- name: lovable
+  careers_url: https://job-boards.greenhouse.io/lovable
+  enabled: true
+- name: lyft
+  careers_url: https://job-boards.greenhouse.io/lyft
+  enabled: true
+- name: mercury
+  careers_url: https://job-boards.greenhouse.io/mercury
+  enabled: true
+- name: miro
+  careers_url: https://jobs.ashbyhq.com/miro
+  enabled: true
+- name: modal
+  careers_url: https://jobs.ashbyhq.com/modal
+  enabled: true
+- name: neofinancial
+  careers_url: https://jobs.ashbyhq.com/neofinancial
+  enabled: true
+- name: neon
+  careers_url: https://jobs.lever.co/neon
+  enabled: true
+- name: netlify
+  careers_url: https://job-boards.greenhouse.io/netlify
+  enabled: true
+- name: notion
+  careers_url: https://jobs.ashbyhq.com/notion
+  enabled: true
+- name: openai
+  careers_url: https://jobs.ashbyhq.com/openai
+  enabled: true
+- name: perplexity
+  careers_url: https://jobs.ashbyhq.com/perplexity
+  enabled: true
+- name: pika
+  careers_url: https://jobs.ashbyhq.com/pika
+  enabled: true
+- name: pinterest
+  careers_url: https://job-boards.greenhouse.io/pinterest
+  enabled: true
+- name: plaid
+  careers_url: https://jobs.ashbyhq.com/plaid
+  enabled: true
+- name: planetscale
+  careers_url: https://job-boards.greenhouse.io/planetscale
+  enabled: true
+- name: posthog
+  careers_url: https://jobs.ashbyhq.com/posthog
+  enabled: true
+- name: railway
+  careers_url: https://jobs.ashbyhq.com/railway
+  enabled: true
+- name: ramp
+  careers_url: https://job-boards.greenhouse.io/ramp
+  enabled: true
+- name: reddit
+  careers_url: https://job-boards.greenhouse.io/reddit
+  enabled: true
+- name: render
+  careers_url: https://jobs.ashbyhq.com/render
+  enabled: true
+- name: replit
+  careers_url: https://jobs.ashbyhq.com/replit
+  enabled: true
+- name: ritual
+  careers_url: https://job-boards.greenhouse.io/ritual
+  enabled: true
+- name: robinhood
+  careers_url: https://job-boards.greenhouse.io/robinhood
+  enabled: true
+- name: sanity
+  careers_url: https://jobs.ashbyhq.com/sanity
+  enabled: true
+- name: scaleai
+  careers_url: https://job-boards.greenhouse.io/scaleai
+  enabled: true
+- name: sierra
+  careers_url: https://jobs.ashbyhq.com/sierra
+  enabled: true
+- name: stackblitz
+  careers_url: https://job-boards.greenhouse.io/stackblitz
+  enabled: true
+- name: stripe
+  careers_url: https://job-boards.greenhouse.io/stripe
+  enabled: true
+- name: suno
+  careers_url: https://jobs.ashbyhq.com/suno
+  enabled: true
+- name: supabase
+  careers_url: https://jobs.ashbyhq.com/supabase
+  enabled: true
+- name: temporal
+  careers_url: https://jobs.ashbyhq.com/temporal
+  enabled: true
+- name: typeform
+  careers_url: https://job-boards.greenhouse.io/typeform
+  enabled: true
+- name: vercel
+  careers_url: https://job-boards.greenhouse.io/vercel
+  enabled: true
+- name: wattpad
+  careers_url: https://jobs.lever.co/wattpad
+  enabled: true
+- name: wealthsimple
+  careers_url: https://jobs.ashbyhq.com/wealthsimple
+  enabled: true
+- name: webflow
+  careers_url: https://jobs.ashbyhq.com/webflow
+  enabled: true
+- name: writer
+  careers_url: https://jobs.ashbyhq.com/writer
+  enabled: true
+- name: zapier
+  careers_url: https://jobs.ashbyhq.com/zapier
+  enabled: true
+- name: Spotify
+  careers_url: https://jobs.lever.co/spotify
+  enabled: true
+- name: HubSpot
+  careers_url: https://job-boards.greenhouse.io/hubspotjobs
+  enabled: true
+- name: Block (Square)
+  careers_url: https://job-boards.greenhouse.io/block
+  enabled: true
+- name: Toast
+  careers_url: https://job-boards.greenhouse.io/toast
+  enabled: true
+- name: Roblox
+  careers_url: https://job-boards.greenhouse.io/roblox
+  enabled: true
+- name: Samsara
+  careers_url: https://job-boards.greenhouse.io/samsara
+  enabled: true
+- name: Okta
+  careers_url: https://job-boards.greenhouse.io/okta
+  enabled: true
+- name: PointClickCare
+  careers_url: https://jobs.lever.co/pointclickcare
+  enabled: true
+- name: Lightspeed Commerce
+  careers_url: https://jobs.ashbyhq.com/lightspeedhq
+  enabled: true
+- name: Questrade Financial Group
+  careers_url: https://job-boards.greenhouse.io/questrade
+  enabled: true
+- name: Diligent
+  careers_url: https://job-boards.greenhouse.io/diligentcorporation
+  enabled: true
+- name: Trulioo
+  careers_url: https://jobs.ashbyhq.com/trulioo
+  enabled: true
+- name: Verkada
+  careers_url: https://job-boards.greenhouse.io/verkada
+  enabled: true
+- name: Klaviyo
+  careers_url: https://job-boards.greenhouse.io/klaviyo
+  enabled: true
+- name: Bumble
+  careers_url: https://jobs.ashbyhq.com/bumbleinc
+  enabled: true
+- name: Bumble
+  careers_url: https://jobs.lever.co/bumbleinc
+  enabled: true
+- name: IXL Learning
+  careers_url: https://job-boards.greenhouse.io/ixllearning
+  enabled: true
+- name: ID.me
+  careers_url: https://job-boards.greenhouse.io/idmeuniversityrecruiting
+  enabled: true
+- name: Roku
+  careers_url: https://job-boards.greenhouse.io/roku
+  enabled: true
+- name: Lucid Software
+  careers_url: https://job-boards.greenhouse.io/lucidsoftware
+  enabled: true
+- name: Grafana Labs
+  careers_url: https://job-boards.greenhouse.io/grafanalabs
+  enabled: true
+- name: Veeva Systems
+  careers_url: https://jobs.lever.co/veeva
+  enabled: true
+- name: Uncountable
+  careers_url: https://jobs.ashbyhq.com/uncountable
+  enabled: true
+- name: Jerry
+  careers_url: https://jobs.ashbyhq.com/Jerry.ai
+  enabled: true
+- name: Solace Health
+  careers_url: https://jobs.ashbyhq.com/Solace
+  enabled: true
+- name: Fireworks AI
+  careers_url: https://jobs.ashbyhq.com/fireworks
+  enabled: true
+- name: Cheiron
+  careers_url: https://jobs.ashbyhq.com/Cheiron
+  enabled: true
+- name: Sela AI
+  careers_url: https://jobs.ashbyhq.com/sela
+  enabled: true
+- name: Addepar
+  careers_url: https://job-boards.greenhouse.io/addepar1
+  enabled: true
+- name: Red Ventures
+  careers_url: https://job-boards.greenhouse.io/redventures
+  enabled: true
+- name: Tint
+  careers_url: https://job-boards.greenhouse.io/tintai
+  enabled: true
+- name: Clerkie (Fiber AI)
+  careers_url: https://job-boards.greenhouse.io/clerkie
+  enabled: true
+- name: Hive (thehive.ai)
+  careers_url: https://jobs.lever.co/hive
+  enabled: true
+- name: StubHub
+  careers_url: https://job-boards.greenhouse.io/stubhubinc
+  enabled: true
+- name: impact.com
+  careers_url: https://job-boards.greenhouse.io/impact
+  enabled: true
+- name: SOCi
+  careers_url: https://job-boards.greenhouse.io/soci
+  enabled: true
+- name: Amplify
+  careers_url: https://jobs.ashbyhq.com/amplify
+  enabled: true
+- name: Omada Health
+  careers_url: https://job-boards.greenhouse.io/omadahealth
+  enabled: true
+- name: SpecterOps
+  careers_url: https://job-boards.greenhouse.io/specterops
+  enabled: true
+- name: Relay (relaypro)
+  careers_url: https://job-boards.greenhouse.io/relaypro
+  enabled: true
+- name: Eulerity
+  careers_url: https://job-boards.greenhouse.io/eulerity
+  enabled: true
+- name: Model N
+  careers_url: https://jobs.lever.co/modeln
+  enabled: true
+- name: HONK
+  careers_url: https://jobs.lever.co/honkforhelp
+  enabled: true
+- name: HighlightTA
+  careers_url: https://jobs.ashbyhq.com/highlightta
+  enabled: true
+- name: AltaML
+  careers_url: https://jobs.lever.co/altaml
+  enabled: true
+- name: FlightHub
+  careers_url: https://job-boards.greenhouse.io/flighthub
+  enabled: true
+- name: Collective Health
+  careers_url: https://job-boards.greenhouse.io/collectivehealth
+  enabled: true
+- name: QuinStreet
+  careers_url: https://job-boards.greenhouse.io/quinstreet
+  enabled: true
+- name: Ema
+  careers_url: https://jobs.ashbyhq.com/ema
+  enabled: true
+- name: Side
+  careers_url: https://jobs.lever.co/sideinc
+  enabled: true
+- name: Parkdepot
+  careers_url: https://jobs.lever.co/salesdemo-jr
+  enabled: true
+- name: Rhoda AI
+  careers_url: https://jobs.ashbyhq.com/rhoda-ai
+  enabled: true
+- name: Lumafield
+  careers_url: https://jobs.lever.co/lumafield
+  enabled: true
+- name: KnowBe4
+  careers_url: https://job-boards.greenhouse.io/knowbe4
+  enabled: true
+- name: Appian
+  careers_url: https://job-boards.greenhouse.io/appian
+  enabled: true
+- name: Alarm.com
+  careers_url: https://job-boards.greenhouse.io/alarmcom
+  enabled: true
+- name: Kikoff
+  careers_url: https://job-boards.greenhouse.io/kikoff
+  enabled: true
+- name: tastytrade
+  careers_url: https://job-boards.greenhouse.io/tastytrade
+  enabled: true
+- name: Whoop
+  careers_url: https://jobs.lever.co/whoop
+  enabled: true
+- name: Normal Computing
+  careers_url: https://jobs.ashbyhq.com/normalcomputing
+  enabled: true
+- name: Clipboard Health
+  careers_url: https://jobs.ashbyhq.com/clipboard
+  enabled: true
+- name: Frec Markets
+  careers_url: https://jobs.ashbyhq.com/frec
+  enabled: true
+- name: Carvana
+  careers_url: https://job-boards.greenhouse.io/carvana
+  enabled: true
+- name: Box
+  careers_url: https://job-boards.greenhouse.io/boxinc
+  enabled: true
+- name: DoorDash
+  careers_url: https://job-boards.greenhouse.io/doordashusa
+  enabled: true
+- name: EliseAI
+  careers_url: https://jobs.ashbyhq.com/eliseai
+  enabled: true
+- name: Vestwell
+  careers_url: https://job-boards.greenhouse.io/vestwell
+  enabled: true
+- name: Yext
+  careers_url: https://job-boards.greenhouse.io/yext
+  enabled: true
+- name: Salesforce
+  careers_url: https://salesforce.wd12.myworkdayjobs.com/External_Career_Site
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Expedia Group
+  careers_url: https://expedia.wd108.myworkdayjobs.com/search
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Visa
+  careers_url: https://visa.wd5.myworkdayjobs.com/Visa
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Red Hat
+  careers_url: https://redhat.wd5.myworkdayjobs.com/jobs
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: FIS
+  careers_url: https://fis.wd5.myworkdayjobs.com/SearchJobs
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Hewlett Packard Enterprise
+  careers_url: https://hpe.wd5.myworkdayjobs.com/Jobsathpe
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: DraftKings
+  careers_url: https://draftkings.wd1.myworkdayjobs.com/DraftKings
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Ancestry
+  careers_url: https://ancestry.wd501.myworkdayjobs.com/Careers
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Guidewire
+  careers_url: https://wd5.myworkdaysite.com/recruiting/guidewire/external
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Adobe
+  careers_url: https://adobe.wd5.myworkdayjobs.com/external_experienced
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: PayPal
+  careers_url: https://paypal.wd1.myworkdayjobs.com/jobs
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Mastercard
+  careers_url: https://mastercard.wd1.myworkdayjobs.com/CorporateCareers
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Workday
+  careers_url: https://workday.wd5.myworkdayjobs.com/Workday
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Workday (Early Career)
+  careers_url: https://workday.wd5.myworkdayjobs.com/Workday_Early_Career
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: ThoughtSpot
+  careers_url: https://thoughtspot.wd5.myworkdayjobs.com/careers
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Fiserv
+  careers_url: https://fiserv.wd5.myworkdayjobs.com/EXT
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Global Payments
+  careers_url: https://tsys.wd1.myworkdayjobs.com/TSYS
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: LexisNexis Risk Solutions
+  careers_url: https://relx.wd3.myworkdayjobs.com/RiskSolutions
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Relativity
+  careers_url: https://kcura.wd1.myworkdayjobs.com/External_Career_Site
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Magnite
+  careers_url: https://osv-rubicon.wd5.myworkdayjobs.com/MagniteCareers
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Entrust
+  careers_url: https://entrust.wd1.myworkdayjobs.com/EntrustCareers
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Procore Technologies
+  careers_url: https://procore.wd12.myworkdayjobs.com/Procore_External_Careers
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: CoStar Group
+  careers_url: https://costar.wd1.myworkdayjobs.com/CoStarCareers
+  notes: 'Workday: read by `resume scan-workday`'
+  enabled: false
+- name: Amazon
+  careers_url: https://www.amazon.jobs
+  provider: amazon
+  amazon:
+    base_query: product manager
+    normalized_country_code:
+    - USA
+    - CAN
+  enabled: true
+- name: Google
+  careers_url: https://www.google.com/about/careers/applications/jobs/results/
+  provider: google
+  google:
+    location: United States
+    queries:
+    - associate product manager
+    - product manager university graduate
+  enabled: true
+- name: Google (Canada)
+  careers_url: https://www.google.com/about/careers/applications/jobs/results/?location=Canada
+  provider: google
+  google:
+    location: Canada
+    queries:
+    - product manager
+  enabled: true
+- name: Microsoft
+  careers_url: https://apply.careers.microsoft.com/careers?domain=microsoft.com
+  provider: eightfold
+  eightfold_host: apply.careers.microsoft.com
+  max_pages: 30
+  enabled: true
+- name: Atlassian
+  careers_url: https://www.atlassian.com/company/careers/all-jobs
+  provider: atlassian
+  enabled: true
+- name: IBM
+  careers_url: https://www.ibm.com/careers/search
+  provider: ibm
+  ibm:
+    country: United States
+  enabled: true
+- name: IBM (Canada)
+  careers_url: https://www.ibm.com/careers/search?country=Canada
+  provider: ibm
+  ibm:
+    country: Canada
+  enabled: true
+- name: LinkedIn
+  careers_url: https://jobs.smartrecruiters.com/LinkedIn3
+  enabled: true
+- name: ServiceNow
+  careers_url: https://jobs.smartrecruiters.com/ServiceNow
+  enabled: true
+- name: Experian
+  careers_url: https://jobs.smartrecruiters.com/Experian
+  enabled: true
+- name: Achieve
+  careers_url: https://jobs.smartrecruiters.com/Achieve1
+  enabled: true
+- name: Bask Health
+  careers_url: https://apply.workable.com/bask-health-1/
+  enabled: true
+- name: Best Friend Finance
+  careers_url: https://apply.workable.com/bff/
+  enabled: true
+- name: Raydar
+  careers_url: https://apply.workable.com/raydar/
+  enabled: true
+- name: Free Market Health
+  careers_url: https://ats.rippling.com/free-market-health/jobs
+  enabled: true
+- name: PatientNow
+  careers_url: https://ats.rippling.com/patientnow/jobs
+  enabled: true
+- name: Ratehub.ca
+  careers_url: https://ratehubinc.applytojob.com/
+  enabled: true

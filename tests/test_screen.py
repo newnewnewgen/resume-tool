@@ -78,3 +78,43 @@ def test_fetch_jd_routes_by_posting_url(monkeypatch):
     assert calls[-1] == "https://api.smartrecruiters.com/v1/companies/LinkedIn3/postings/7440"
     assert "Ship" in screen.fetch_jd("", "https://apply.workable.com/raydar/j/ABC123/")
     assert calls[-1] == "https://apply.workable.com/api/v2/accounts/raydar/jobs/ABC123"
+
+
+def test_workday_board_and_age():
+    from resume_tool.screen import posted_days_ago, workday_board
+    assert workday_board("https://visa.wd5.myworkdayjobs.com/Visa") == (
+        "https://visa.wd5.myworkdayjobs.com/wday/cxs/visa/Visa/jobs", "https://visa.wd5.myworkdayjobs.com/Visa")
+    assert workday_board("https://wd5.myworkdaysite.com/recruiting/guidewire/external")[1] == \
+        "https://wd5.myworkdaysite.com/recruiting/guidewire/external"
+    assert workday_board("https://jobs.lever.co/x") is None
+    assert posted_days_ago("Posted Today") == 0
+    assert posted_days_ago("Posted Yesterday") == 1
+    assert posted_days_ago("Posted 5 Days Ago") == 5
+    assert posted_days_ago("Posted 30+ Days Ago") is None
+
+
+def test_scan_workday_appends_early_product_roles(tmp_path):
+    from resume_tool.screen import parse_pipeline, scan_workday, workday_search
+    page = {"total": 4, "jobPostings": [
+        {"title": "Associate Product Manager", "externalPath": "/job/Toronto/APM_R1",
+         "locationsText": "Toronto", "postedOn": "Posted 2 Days Ago"},
+        {"title": "Senior Product Manager", "externalPath": "/job/X/SPM_R2", "postedOn": "Posted Today"},
+        {"title": "Product Designer", "externalPath": "/job/X/PD_R3", "postedOn": "Posted Today"},
+        {"title": "Product Manager", "externalPath": "/job/X/PM_R4", "postedOn": "Posted 30+ Days Ago"},
+    ]}
+    portals = tmp_path / "portals.yml"
+    portals.write_text("tracked_companies:\n"
+                       "  - {name: Visa, careers_url: 'https://visa.wd5.myworkdayjobs.com/Visa', enabled: false}\n"
+                       "  - {name: Stripe, careers_url: 'https://job-boards.greenhouse.io/stripe'}\n")
+    pipeline = tmp_path / "pipeline.md"
+    pipeline.write_text("## Pending\n\n- [ ] https://job-boards.greenhouse.io/stripe/jobs/1 | stripe | PM\n")
+
+    def search(url, since_days):
+        return workday_search(url, since_days=since_days, post=lambda api, body: page)
+
+    added, errors = scan_workday(portals, pipeline, since_days=7, pause=0, search=search)
+    assert (added, errors) == (1, [])
+    items = parse_pipeline(pipeline.read_text())
+    assert [i.title for i in items] == ["PM", "Associate Product Manager"]
+    assert items[1].url == "https://visa.wd5.myworkdayjobs.com/Visa/job/Toronto/APM_R1"
+    assert scan_workday(portals, pipeline, since_days=7, pause=0, search=search)[0] == 0  # dedup

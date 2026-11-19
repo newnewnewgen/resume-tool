@@ -111,6 +111,120 @@ def workday_detail_url(posting_url: str) -> str | None:
     return None
 
 
+# ── Workday discovery ───────────────────────────────────────────────────────
+# career-ops reads Workday too, but by paging every tenant's whole board, and
+# Workday's firewall rate-limits this egress after a few hundred requests (all
+# 22 tenants failed with 429 on the first wide scan). One keyword search per
+# tenant, spaced out, finds the same product roles in a request or two.
+
+SENIOR_TITLE = re.compile(
+    r"\b(senior|sr\.?|staff|principal|director|head of|vp|vice president|lead|manager ii+|"
+    r"intern|internship|co-op)\b|\b(ii|iii|iv)\b", re.I)
+_CAREERS_JOBS = re.compile(
+    r"^https://(?P<tenant>[\w-]+)\.(?P<inst>wd[\w-]*)\.myworkdayjobs\.com/"
+    r"(?:[a-z]{2}-[A-Z]{2}/)?(?P<site>[^/?#]+)/?$")
+_CAREERS_SITE = re.compile(
+    r"^https://(?P<host>[\w-]+\.myworkdaysite\.com)/(?:[a-z]{2}-[A-Z]{2}/)?recruiting/"
+    r"(?P<tenant>[\w-]+)/(?P<site>[^/?#]+)/?$")
+
+
+def workday_board(careers_url: str) -> tuple[str, str] | None:
+    """(jobs API url, public posting base) for a Workday careers URL, else None."""
+    m = _CAREERS_JOBS.match(careers_url)
+    if m:
+        origin = f"https://{m['tenant']}.{m['inst']}.myworkdayjobs.com"
+        return f"{origin}/wday/cxs/{m['tenant']}/{m['site']}/jobs", f"{origin}/{m['site']}"
+    m = _CAREERS_SITE.match(careers_url)
+    if m:
+        origin = f"https://{m['host']}"
+        return (f"{origin}/wday/cxs/{m['tenant']}/{m['site']}/jobs",
+                f"{origin}/recruiting/{m['tenant']}/{m['site']}")
+    return None
+
+
+def posted_days_ago(label: str) -> int | None:
+    """Workday's relative 'postedOn' label in days; None for '30+ Days Ago'."""
+    label = label.lower()
+    if "today" in label:
+        return 0
+    if "yesterday" in label:
+        return 1
+    m = re.search(r"(\d+)\+?\s*days?", label)
+    if not m or "+" in label:
+        return None
+    return int(m.group(1))
+
+
+def _post(url: str, body: dict, retries: int = 3):
+    req = urllib.request.Request(url, data=json.dumps(body).encode(), headers={
+        "Content-Type": "application/json", "Accept": "application/json", "User-Agent": "curl/8.5.0"})
+    for attempt in range(retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return json.loads(r.read())
+        except urllib.error.HTTPError as exc:
+            if exc.code != 429 or attempt == retries:
+                raise
+            time.sleep(10 * (attempt + 1))
+
+
+def workday_search(careers_url: str, search: str = "product", max_pages: int = 3,
+                   since_days: int | None = None, post=_post) -> list[dict]:
+    """Early-career-eligible product postings on one Workday board."""
+    board = workday_board(careers_url)
+    if not board:
+        raise ValueError(f"not a Workday careers URL: {careers_url}")
+    api, base = board
+    found = []
+    for page in range(max_pages):
+        d = post(api, {"limit": 20, "offset": page * 20, "searchText": search, "appliedFacets": {}})
+        rows = d.get("jobPostings") or []
+        for j in rows:
+            title = j.get("title", "")
+            if not j.get("externalPath") or not PRODUCT_TITLE.search(title):
+                continue
+            if NOT_PRODUCT.search(title) or SENIOR_TITLE.search(title):
+                continue
+            age = posted_days_ago(j.get("postedOn", ""))
+            if since_days is not None and (age is None or age > since_days):
+                continue
+            found.append({"title": title, "url": base + j["externalPath"],
+                          "location": j.get("locationsText", ""), "posted": j.get("postedOn", "")})
+        if len(rows) < 20 or (page + 1) * 20 >= (d.get("total") or 0):
+            break
+        time.sleep(2)
+    return found
+
+
+def scan_workday(portals_yml: Path, pipeline_md: Path, since_days: int | None = 7,
+                 pause: float = 4.0, search=workday_search) -> tuple[int, list[str]]:
+    """Search every Workday entry in portals.yml (enabled or not: career-ops is
+    told to skip them) and append new postings to the pipeline as pending rows.
+    Returns (rows added, per-company errors)."""
+    portals = yaml.safe_load(portals_yml.read_text(encoding="utf-8")) or {}
+    existing = pipeline_md.read_text(encoding="utf-8") if pipeline_md.exists() else "## Pending\n"
+    known = {i.url for i in parse_pipeline(existing)}
+    lines, errors = [], []
+    entries = [c for c in portals.get("tracked_companies") or [] if workday_board(c.get("careers_url", ""))]
+    for n, c in enumerate(entries):
+        if n:
+            time.sleep(pause)
+        try:
+            for job in search(c["careers_url"], since_days=since_days):
+                if job["url"] in known:
+                    continue
+                known.add(job["url"])
+                lines.append(f"- [ ] {job['url']} | {c['name']} | {job['title']} | "
+                             f"{job['location']} | {job['posted']}")
+        except Exception as exc:  # one throttled tenant must not sink the rest
+            errors.append(f"{c['name']}: {str(exc)[:120]}")
+    if lines:
+        text = existing.rstrip("\n") + "\n" + "\n".join(lines) + "\n"
+        pipeline_md.parent.mkdir(parents=True, exist_ok=True)
+        pipeline_md.write_text(text, encoding="utf-8")
+    return len(lines), errors
+
+
 def fetch_jd(careers_url: str, posting_url: str) -> str:
     """JD text from the board's public API, keyed off the posting URL where it
     carries enough (Workday, SmartRecruiters, Workable) and the company's board

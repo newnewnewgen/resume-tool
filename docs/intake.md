@@ -113,3 +113,36 @@ marker ("Product Manager" on a new-grad page read as an inflated title).
 Discovery runs here need the job-board hosts allowed in the cloud
 environment, and `CAREER_OPS_TRUST_PROXY_EGRESS=1` so the scanner goes
 through the egress proxy (safe there: the proxy only reaches allowed hosts).
+
+## Widening the net (Nov 2026)
+
+The first run's lesson was that the company list, more than the scorer, set
+the ceiling: most big early-career PM programs don't post on Greenhouse,
+Lever or Ashby. A research pass collected 163 tech companies with APM,
+rotational or junior PM roles in Canada and the US and checked each one's
+job board. What came out is `intake/portals.yml`:
+
+- every Greenhouse/Lever/Ashby board that answered with live jobs;
+- Workday tenants for the big programs (Salesforce, Adobe, PayPal, Visa,
+  Expedia, Red Hat, Guidewire and others), each with its site name checked
+  against the public jobs API;
+- Google, Amazon, Microsoft, Atlassian and IBM through career-ops' own
+  providers, plus a few SmartRecruiters, Workable, Rippling and JazzHR boards.
+
+Non-tech employers from the research (media, telecom, auto auctions, IT
+services, publishing) were left out on purpose. Meta, Uber, TikTok and
+Shopify run custom sites with no zero-token reader; their programs open on a
+yearly calendar and are cheaper to watch by hand.
+
+`resume screen-postings` now reads JDs from Workday (both URL shapes),
+SmartRecruiters and Workable as well as the original three. Workday's
+firewall rate-limits bursts across all tenants at once, so the fetcher backs
+off on 429 instead of failing the posting.
+
+## Weekly search
+
+A scheduled routine runs the whole intake once a week in a fresh cloud
+session: scan with `--since 7`, `resume screen-postings`, knockouts checked
+against the author's eligibility, and a template clone for anything that
+survives. It notifies only when a role passes. It never edits the master
+template; content edits still go to the author first.

@@ -13,6 +13,8 @@ from __future__ import annotations
 import html
 import json
 import re
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import asdict, dataclass, field
@@ -74,17 +76,64 @@ def _strip_html(h: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", re.sub(r"<[^>]+>", "", h)).strip()
 
 
-def _get(url: str):
-    req = urllib.request.Request(url, headers={"User-Agent": "curl/8.5.0"})
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return json.loads(r.read())
+def _get(url: str, retries: int = 3):
+    """GET JSON. Workday's firewall answers bursts with 429, so back off and retry."""
+    req = urllib.request.Request(url, headers={"User-Agent": "curl/8.5.0", "Accept": "application/json"})
+    for attempt in range(retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return json.loads(r.read())
+        except urllib.error.HTTPError as exc:
+            if exc.code != 429 or attempt == retries:
+                raise
+            time.sleep(5 * (attempt + 1))
+
+
+_WORKDAY_JOBS = re.compile(
+    r"^https://(?P<tenant>[\w-]+)\.(?P<inst>wd[\w-]*)\.myworkdayjobs\.com/"
+    r"(?:[a-z]{2}-[A-Z]{2}/)?(?P<site>[^/?#]+)(?P<path>/job/[^?#]+)")
+_WORKDAY_SITE = re.compile(
+    r"^https://(?P<host>[\w-]+\.myworkdaysite\.com)/(?:[a-z]{2}-[A-Z]{2}/)?recruiting/"
+    r"(?P<tenant>[\w-]+)/(?P<site>[^/?#]+)(?P<path>/job/[^?#]+)")
+
+
+def workday_detail_url(posting_url: str) -> str | None:
+    """The CXS detail endpoint for a Workday posting URL, or None if it isn't one.
+    Both public shapes career-ops emits: {tenant}.wdN.myworkdayjobs.com/{site}/job/...
+    and wdN.myworkdaysite.com/recruiting/{tenant}/{site}/job/..."""
+    m = _WORKDAY_JOBS.match(posting_url)
+    if m:
+        host = f"{m['tenant']}.{m['inst']}.myworkdayjobs.com"
+        return f"https://{host}/wday/cxs/{m['tenant']}/{m['site']}{m['path']}"
+    m = _WORKDAY_SITE.match(posting_url)
+    if m:
+        return f"https://{m['host']}/wday/cxs/{m['tenant']}/{m['site']}{m['path']}"
+    return None
 
 
 def fetch_jd(careers_url: str, posting_url: str) -> str:
-    """JD text from the board's public API, keyed off the company's board URL."""
+    """JD text from the board's public API, keyed off the posting URL where it
+    carries enough (Workday, SmartRecruiters, Workable) and the company's board
+    URL otherwise (Greenhouse, Ashby, Lever)."""
+    detail = workday_detail_url(posting_url)
+    if detail:
+        info = _get(detail)["jobPostingInfo"]
+        return f"{info['title']}\n\n{_strip_html(info.get('jobDescription', ''))}"
+    posting = urllib.parse.urlparse(posting_url)
+    parts = [p for p in posting.path.split("/") if p]
+    if posting.netloc == "jobs.smartrecruiters.com" and len(parts) >= 2:
+        jid = parts[1].split("-")[0]
+        d = _get(f"https://api.smartrecruiters.com/v1/companies/{parts[0]}/postings/{jid}")
+        sections = (d.get("jobAd") or {}).get("sections") or {}
+        body = "\n\n".join(_strip_html(v.get("text", "")) for v in sections.values() if isinstance(v, dict))
+        return f"{d['name']}\n\n{body}"
+    if posting.netloc == "apply.workable.com" and len(parts) >= 3 and parts[1] == "j":
+        d = _get(f"https://apply.workable.com/api/v2/accounts/{parts[0]}/jobs/{parts[2]}")
+        body = "\n\n".join(_strip_html(d.get(k) or "") for k in ("description", "requirements", "benefits"))
+        return f"{d['title']}\n\n{body}"
+
     board = urllib.parse.urlparse(careers_url)
     slug = board.path.strip("/").split("/")[0]
-    posting = urllib.parse.urlparse(posting_url)
     query = urllib.parse.parse_qs(posting.query)
 
     if "greenhouse" in board.netloc:
@@ -100,7 +149,7 @@ def fetch_jd(careers_url: str, posting_url: str) -> str:
         jid = posting.path.rstrip("/").split("/")[-1]
         d = _get(f"https://api.lever.co/v0/postings/{slug}/{jid}")
         return f"{d['text']}\n\n{d.get('descriptionPlain', '')}\n{d.get('additionalPlain', '')}"
-    raise ValueError(f"no JD fetcher for {board.netloc}")
+    raise ValueError(f"no JD fetcher for {posting.netloc or board.netloc}")
 
 
 def screen_pipeline(pipeline_md: Path, portals_yml: Path, jd_dir: Path) -> list[Screened]:

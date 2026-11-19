@@ -33,8 +33,11 @@ NOT_PRODUCT = re.compile(r"engineer|design(er)?\b|marketing manager", re.I)
 EARLY_TITLE = re.compile(
     r"associate|apprentice|new grad|early career|\bapm\b|\bapx\b|rotational|accelerator|junior",
     re.I)
+_NUMBER_WORDS = {w: i for i, w in enumerate(
+    "zero one two three four five six seven eight nine ten eleven twelve".split())}
 _YEARS = re.compile(
-    r"(\d{1,2})\s*\+?\s*(?:-\s*\d{1,2}\s*)?(?:\+\s*)?years?\b(?:\s+of)?"
+    r"(\d{1,2}|" + "|".join(_NUMBER_WORDS) + r")\s*\+?\s*(?:\(\d{1,2}\)\s*)?(?:-\s*\d{1,2}\s*)?"
+    r"(?:\+\s*)?(?:or more\s+|or more years\s+)?years?\b(?:\s+of)?"
     r"(?=[^.\n]{0,60}(?:experience|product|industry|software|working|role))", re.I)
 _DEGREE = re.compile(
     r"(computer science|\bCS\b|engineering|technical)[^.\n]{0,40}degree|"
@@ -58,8 +61,12 @@ class Screened:
         return self.early_title or self.years_required is None or self.years_required <= 2
 
 
+def _as_int(token: str) -> int:
+    return int(token) if token.isdigit() else _NUMBER_WORDS[token.lower()]
+
+
 def years_required(text: str) -> int | None:
-    found = [int(n) for n in _YEARS.findall(text) if 0 <= int(n) < 20]
+    found = [n for n in (_as_int(t) for t in _YEARS.findall(text)) if 0 <= n < 20]
     return max(found) if found else None
 
 
@@ -133,6 +140,17 @@ def _get(url: str):
 SENIOR_TITLE = re.compile(
     r"\b(senior|sr\.?|staff|principal|director|head of|vp|vice president|lead|manager ii+|"
     r"intern|internship|co-op)\b|\b(ii|iii|iv)\b", re.I)
+# "Manager, Product Management" and "Regional Product Manager" are mid-level
+# titles at payments companies, not entry roles.
+MID_TITLE = re.compile(r"^\s*(associate\s+)?manager\b|regional product manager|\bmba\b|master'?s", re.I)
+_OFFSHORE = re.compile(r"\b(apac|emea|latam|dubai|uae|india|london|singapore|europe|japan)\b", re.I)
+
+
+def early_product_title(title: str) -> bool:
+    return bool(PRODUCT_TITLE.search(title) and not NOT_PRODUCT.search(title)
+                and not SENIOR_TITLE.search(title) and not MID_TITLE.search(title))
+
+
 _CAREERS_JOBS = re.compile(
     r"^https://(?P<tenant>[\w-]+)\.(?P<inst>wd[\w-]*)\.myworkdayjobs\.com/"
     r"(?:[a-z]{2}-[A-Z]{2}/)?(?P<site>[^/?#]+)/?$")
@@ -214,9 +232,8 @@ def workday_search(careers_url: str, search: str = "product manager", max_pages:
         rows = d.get("jobPostings") or []
         for j in rows:
             title = j.get("title", "")
-            if not j.get("externalPath") or not PRODUCT_TITLE.search(title):
-                continue
-            if NOT_PRODUCT.search(title) or SENIOR_TITLE.search(title):
+            where = f"{title} {j.get('locationsText', '')} {j.get('externalPath', '')}"
+            if not j.get("externalPath") or not early_product_title(title) or _OFFSHORE.search(where):
                 continue
             age = posted_days_ago(j.get("postedOn", ""))
             if since_days is not None and (age is None or age > since_days):
@@ -316,7 +333,10 @@ def fetch_jd(careers_url: str, posting_url: str) -> str:
     if "lever" in board.netloc:
         jid = posting.path.rstrip("/").split("/")[-1]
         d = _get(f"https://api.lever.co/v0/postings/{slug}/{jid}")
-        return f"{d['text']}\n\n{d.get('descriptionPlain', '')}\n{d.get('additionalPlain', '')}"
+        lists = "\n\n".join(f"{l.get('text', '')}\n{_strip_html(l.get('content', ''))}"
+                              for l in d.get("lists") or [])
+        return (f"{d['text']}\n\n{d.get('descriptionPlain', '')}\n\n{lists}\n\n"
+                f"{d.get('additionalPlain', '')}")
     raise ValueError(f"no JD fetcher for {posting.netloc or board.netloc}")
 
 
@@ -329,7 +349,7 @@ def screen_pipeline(pipeline_md: Path, portals_yml: Path, jd_dir: Path) -> list[
     for item in parse_pipeline(pipeline_md.read_text(encoding="utf-8")):
         if item.state != "pending":
             continue
-        if not PRODUCT_TITLE.search(item.title) or NOT_PRODUCT.search(item.title):
+        if not early_product_title(item.title) or _OFFSHORE.search(" ".join((item.title, *item.fields[:1]))):
             continue
         s = Screened(company=item.company, title=item.title, url=item.url,
                      years_required=None, cs_degree_required=False,

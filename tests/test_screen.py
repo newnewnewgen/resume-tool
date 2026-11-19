@@ -134,3 +134,14 @@ def test_product_facets_picks_product_families_only():
             {"facetParameter": "jobFamily", "values": [{"descriptor": "Product", "id": "p2"}]}]},
     ]
     assert product_facets(facets) == {"jobFamilyGroup": ["p1"], "jobFamily": ["p2"]}
+
+
+def test_years_in_words_and_mid_titles():
+    from resume_tool.screen import early_product_title
+    assert years_required("- Three or more years of advanced client support experience.") == 3
+    assert years_required("Five (5) years of product experience") == 5
+    assert not early_product_title("Manager, Product Management")
+    assert not early_product_title("Regional Product Manager, APAC")
+    assert not early_product_title("Networking MBA Product Manager Graduate")
+    assert early_product_title("Associate Product Manager")
+    assert early_product_title("Product Analyst I")

@@ -493,6 +493,39 @@ def template_plan_cmd(
         typer.echo(_json.dumps(plan.docs_requests(), indent=2))
 
 
+@app.command("screen-postings")
+def screen_postings_cmd(
+    pipeline: Annotated[Path, typer.Argument(help="career-ops data/pipeline.md")],
+    portals: Annotated[Path, typer.Argument(help="The portals.yml the scan used")],
+    jd_dir: Annotated[Path, typer.Option("--jd-dir", help="Where fetched JDs are saved")] = Path("jds"),
+    out: Annotated[Path | None, typer.Option("--out", help="Write the full results as JSON here")] = None,
+) -> None:
+    """Free first pass over a scan: product roles, experience bar, degree gates.
+
+    Fetches each JD from its public board API and drops roles over the
+    two-year bar before any model reads them.
+    """
+    from .screen import screen_pipeline, to_json
+
+    results = screen_pipeline(pipeline, portals, jd_dir)
+    within = [r for r in results if r.within and not r.fetch_error]
+    typer.echo(f"{len(results)} product postings screened, {len(within)} within the bar")
+    for r in within:
+        flags = []
+        if r.cs_degree_required:
+            flags.append("CS-degree")
+        if r.graduation_lines:
+            flags.append("grad-window")
+        typer.echo(f"  {r.company:<14} {r.title[:56]:<56} "
+                   f"years={r.years_required if r.years_required is not None else '-'} "
+                   f"{' '.join(flags)}")
+    errors = [r for r in results if r.fetch_error]
+    if errors:
+        typer.echo(f"{len(errors)} posting(s) could not be fetched (often closed since the scan)")
+    if out:
+        out.write_text(to_json(results), encoding="utf-8")
+
+
 @app.command("intake")
 def intake_cmd(
     data_root: Annotated[Path, typer.Argument(help="Your career-ops data directory (holds data/applications.md and reports/)")],
